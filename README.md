@@ -107,6 +107,32 @@ npm run build
 ### 開発サーバー
 http://localhost:3000 でアプリケーションが起動します。
 
+## 🧪 テスト
+
+### テストの実行
+
+```bash
+# テストを実行（watchモード）
+npm test
+
+# CI用テスト（1回だけ実行）
+npm run test:ci
+
+# UIモードでテストを実行
+npm run test:ui
+
+# カバレッジレポートを生成
+npm run test:coverage
+```
+
+### テストスイート
+
+- **ユーティリティ関数**: treeParser, treeOperations
+- **カスタムフック**: useTreeState, useExpandedNodes, useFeedback, useExportModal, useDragAndDrop, useTreeActions
+- **合計**: 140テスト
+
+すべてのテストは[Vitest](https://vitest.dev/)と[React Testing Library](https://testing-library.com/react)で実装されています。
+
 ## 📦 デプロイ
 
 ### GitHub Pages
@@ -117,7 +143,15 @@ http://localhost:3000 でアプリケーションが起動します。
 
 #### 自動デプロイ設定
 
-`master` ブランチへのpush時に、GitHub Actionsが自動的にビルドとデプロイを実行します。
+`master` ブランチへのpush時に、GitHub Actionsが自動的にテスト→ビルド→デプロイを実行します。
+
+**デプロイフロー:**
+1. 依存関係のインストール
+2. **テストの実行** - すべてのテストが通過する必要があります
+3. プロダクションビルド
+4. GitHub Pagesへのデプロイ
+
+テストが失敗した場合、デプロイは中止されます。
 
 #### 初回セットアップ（リポジトリ管理者向け）
 
@@ -178,10 +212,12 @@ Console タブで「Verbose」を無効化するだけです。
 
 ## 🛠️ 技術スタック
 
-- **React 18** - UIフレームワーク
+- **React 19** - UIフレームワーク
 - **TypeScript** - 型安全性
 - **Vite** - 高速ビルドツール
-- **Tailwind CSS** - スタイリング
+- **Tailwind CSS v4** - スタイリング
+- **Vitest** - テストフレームワーク
+- **React Testing Library** - Reactコンポーネント/フックのテスト
 - **HTML5 Drag and Drop API** - ドラッグ&ドロップ
 
 ## 📦 主要なフック
