@@ -107,6 +107,50 @@ npm run build
 ### 開発サーバー
 http://localhost:3000 でアプリケーションが起動します。
 
+## 📦 デプロイ
+
+### GitHub Pages
+
+このプロジェクトは GitHub Pages に自動デプロイされます。
+
+**公開URL**: https://pyyoshi.github.io/demo-interactive-tree-structure-editor/
+
+#### 自動デプロイ設定
+
+`main` ブランチへのpush時に、GitHub Actionsが自動的にビルドとデプロイを実行します。
+
+#### 初回セットアップ（リポジトリ管理者向け）
+
+1. GitHubリポジトリの **Settings** > **Pages** に移動
+2. **Source** を `GitHub Actions` に変更
+3. `main` ブランチにpushすると自動デプロイが開始されます
+
+#### ワークフロー
+
+デプロイワークフローは `.github/workflows/deploy.yml` で管理されています。
+
+```yaml
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 手動実行も可能
+```
+
+#### base pathの設定
+
+ローカル開発とGitHub Pagesデプロイの両方で正しく動作するよう、環境変数でbase pathを制御しています。
+
+- **ローカル開発/ビルド**: base pathは `/`（ルートパス）
+- **GitHub Pagesデプロイ**: base pathは `/demo-interactive-tree-structure-editor/`
+
+`vite.config.ts` で環境変数 `VITE_BASE_PATH` を使用：
+```typescript
+base: env.VITE_BASE_PATH || '/',
+```
+
+GitHub Actionsでは、ビルド時に環境変数を設定してサブパスを有効化します。
+
 ## 🐛 デバッグ
 
 ### デバッグログの表示
