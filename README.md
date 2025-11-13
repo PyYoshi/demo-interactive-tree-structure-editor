@@ -127,11 +127,36 @@ npm run test:coverage
 
 ### テストスイート
 
+#### ユニットテスト
+
 - **ユーティリティ関数**: treeParser, treeOperations
 - **カスタムフック**: useTreeState, useExpandedNodes, useFeedback, useExportModal, useDragAndDrop, useTreeActions
 - **合計**: 140テスト
 
-すべてのテストは[Vitest](https://vitest.dev/)と[React Testing Library](https://testing-library.com/react)で実装されています。
+すべてのユニットテストは[Vitest](https://vitest.dev/)と[React Testing Library](https://testing-library.com/react)で実装されています。
+
+#### E2Eテスト
+
+実際のユーザー操作をシミュレートするE2Eテストを[Playwright](https://playwright.dev/)で実装しています。
+
+```bash
+# E2Eテストを実行
+npm run test:e2e
+
+# UIモードで実行
+npm run test:e2e:ui
+
+# ブラウザを表示して実行
+npm run test:e2e:headed
+
+# デバッグモードで実行
+npm run test:e2e:debug
+```
+
+**テストシナリオ:**
+- 基本的な機能（ページ表示、データインポート、ノード追加・削除、ツリークリア）
+- ドラッグ&ドロップ機能（ノード移動、展開・折りたたみ）
+- エクスポート機能（モーダル表示、フォーマット切り替え、クリップボードコピー）
 
 ## 📦 デプロイ
 
@@ -216,8 +241,9 @@ Console タブで「Verbose」を無効化するだけです。
 - **TypeScript** - 型安全性
 - **Vite** - 高速ビルドツール
 - **Tailwind CSS v4** - スタイリング
-- **Vitest** - テストフレームワーク
+- **Vitest** - ユニットテストフレームワーク
 - **React Testing Library** - Reactコンポーネント/フックのテスト
+- **Playwright** - E2Eテストフレームワーク
 - **HTML5 Drag and Drop API** - ドラッグ&ドロップ
 
 ## 📦 主要なフック
