@@ -117,13 +117,13 @@ http://localhost:3000 でアプリケーションが起動します。
 
 #### 自動デプロイ設定
 
-`main` ブランチへのpush時に、GitHub Actionsが自動的にビルドとデプロイを実行します。
+`master` ブランチへのpush時に、GitHub Actionsが自動的にビルドとデプロイを実行します。
 
 #### 初回セットアップ（リポジトリ管理者向け）
 
 1. GitHubリポジトリの **Settings** > **Pages** に移動
 2. **Source** を `GitHub Actions` に変更
-3. `main` ブランチにpushすると自動デプロイが開始されます
+3. `master` ブランチにpushすると自動デプロイが開始されます
 
 #### ワークフロー
 
@@ -133,7 +133,7 @@ http://localhost:3000 でアプリケーションが起動します。
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:  # 手動実行も可能
 ```
 
