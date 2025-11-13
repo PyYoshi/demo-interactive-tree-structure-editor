@@ -1,0 +1,10 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "userDataDir": "./.playwright-mcp/user-data",
+    "launchOptions": {
+      "downloadsPath": "./.playwright-mcp/downloads"
+    }
+  },
+  "outputDir": "./.playwright-mcp/output"
+}
