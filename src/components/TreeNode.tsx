@@ -37,7 +37,7 @@ const ActionButton: FC<{ onClick?: () => void; children: ReactNode; disabled?: b
     </button>
 );
 
-export const TreeNode: FC<TreeNodeProps> = ({
+const TreeNodeComponent: FC<TreeNodeProps> = ({
   node,
   level,
   onAddNode,
@@ -295,3 +295,5 @@ export const TreeNode: FC<TreeNodeProps> = ({
     </>
   );
 };
+
+export const TreeNode = TreeNodeComponent;

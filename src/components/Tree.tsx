@@ -17,7 +17,7 @@ interface TreeProps {
   onPreviewChange: (target: { targetId: string, position: 'before' | 'after' | 'inside' } | null) => void;
 }
 
-export const Tree: FC<TreeProps> = ({
+const TreeComponent: FC<TreeProps> = ({
   data,
   onAddNode,
   onDeleteNode,
@@ -54,3 +54,5 @@ export const Tree: FC<TreeProps> = ({
     </div>
   );
 };
+
+export const Tree = TreeComponent;

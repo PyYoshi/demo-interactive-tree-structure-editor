@@ -1,6 +1,8 @@
 import { measureRenders } from 'reassure';
+import { useState } from 'react';
 import { Tree } from '../../src/components/Tree';
 import type { TreeNodeData } from '../../src/types';
+import { generateLargeTree, collectAllNodeIds, createExpandedMap, countNodes } from './helpers';
 
 describe('Tree Performance', () => {
   test('renders efficiently with empty tree', async () => {
@@ -196,6 +198,182 @@ describe('Tree Performance', () => {
         expandedNodes={new Map([['1', true]])}
         onToggleExpand={() => {}}
         highlightedNodeId="3"
+        draggingNodeId={null}
+        draggingNode={null}
+        previewTarget={null}
+        onDragStateChange={() => {}}
+        onPreviewChange={() => {}}
+      />
+    );
+  });
+
+  // ===== 大規模ツリーでの再レンダリングテスト =====
+
+  test('re-renders efficiently when highlightedNodeId changes (100 nodes)', async () => {
+    const data = generateLargeTree(100, 4);
+    const allNodeIds = collectAllNodeIds(data);
+    const expandedNodes = createExpandedMap(allNodeIds);
+
+    // コンソールにノード数を出力（デバッグ用）
+    const nodeCount = countNodes(data);
+    console.log(`Generated tree with ${nodeCount} nodes for highlightedNodeId test`);
+
+    const TestComponent = () => {
+      const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
+
+      // scenario関数内で呼び出される関数を公開
+      if (typeof window !== 'undefined') {
+        (window as any).__testSetHighlightedNodeId = setHighlightedNodeId;
+      }
+
+      return (
+        <Tree
+          data={data}
+          onAddNode={() => {}}
+          onDeleteNode={() => {}}
+          onMoveNode={() => {}}
+          expandedNodes={expandedNodes}
+          onToggleExpand={() => {}}
+          highlightedNodeId={highlightedNodeId}
+          draggingNodeId={null}
+          draggingNode={null}
+          previewTarget={null}
+          onDragStateChange={() => {}}
+          onPreviewChange={() => {}}
+        />
+      );
+    };
+
+    await measureRenders(<TestComponent />, {
+      scenario: async () => {
+        // 最初のノードをハイライト
+        (window as any).__testSetHighlightedNodeId(allNodeIds[0]);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // 別のノードをハイライト
+        (window as any).__testSetHighlightedNodeId(allNodeIds[Math.floor(allNodeIds.length / 2)]);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // ハイライト解除
+        (window as any).__testSetHighlightedNodeId(null);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    });
+  });
+
+  test('re-renders efficiently when expandedNodes changes (100 nodes)', async () => {
+    const data = generateLargeTree(100, 4);
+    const allNodeIds = collectAllNodeIds(data);
+
+    const nodeCount = countNodes(data);
+    console.log(`Generated tree with ${nodeCount} nodes for expandedNodes test`);
+
+    const TestComponent = () => {
+      const [expandedNodes, setExpandedNodes] = useState<Map<string, boolean>>(new Map());
+
+      if (typeof window !== 'undefined') {
+        (window as any).__testSetExpandedNodes = setExpandedNodes;
+      }
+
+      return (
+        <Tree
+          data={data}
+          onAddNode={() => {}}
+          onDeleteNode={() => {}}
+          onMoveNode={() => {}}
+          expandedNodes={expandedNodes}
+          onToggleExpand={() => {}}
+          highlightedNodeId={null}
+          draggingNodeId={null}
+          draggingNode={null}
+          previewTarget={null}
+          onDragStateChange={() => {}}
+          onPreviewChange={() => {}}
+        />
+      );
+    };
+
+    await measureRenders(<TestComponent />, {
+      scenario: async () => {
+        // 全ノードを展開
+        (window as any).__testSetExpandedNodes(createExpandedMap(allNodeIds));
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // 全ノードを折りたたみ
+        (window as any).__testSetExpandedNodes(new Map());
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // 半分のノードを展開
+        const halfExpanded = createExpandedMap(allNodeIds.slice(0, Math.floor(allNodeIds.length / 2)));
+        (window as any).__testSetExpandedNodes(halfExpanded);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    });
+  });
+
+  test('re-renders efficiently when draggingNodeId changes (100 nodes)', async () => {
+    const data = generateLargeTree(100, 4);
+    const allNodeIds = collectAllNodeIds(data);
+    const expandedNodes = createExpandedMap(allNodeIds);
+
+    const nodeCount = countNodes(data);
+    console.log(`Generated tree with ${nodeCount} nodes for draggingNodeId test`);
+
+    const TestComponent = () => {
+      const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+
+      if (typeof window !== 'undefined') {
+        (window as any).__testSetDraggingNodeId = setDraggingNodeId;
+      }
+
+      return (
+        <Tree
+          data={data}
+          onAddNode={() => {}}
+          onDeleteNode={() => {}}
+          onMoveNode={() => {}}
+          expandedNodes={expandedNodes}
+          onToggleExpand={() => {}}
+          highlightedNodeId={null}
+          draggingNodeId={draggingNodeId}
+          draggingNode={null}
+          previewTarget={null}
+          onDragStateChange={() => {}}
+          onPreviewChange={() => {}}
+        />
+      );
+    };
+
+    await measureRenders(<TestComponent />, {
+      scenario: async () => {
+        // ドラッグ開始
+        (window as any).__testSetDraggingNodeId(allNodeIds[0]);
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // ドラッグ終了
+        (window as any).__testSetDraggingNodeId(null);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    });
+  });
+
+  test('renders efficiently with very large tree - initial render only (200 nodes)', async () => {
+    const data = generateLargeTree(200, 5);
+    const allNodeIds = collectAllNodeIds(data);
+    const expandedNodes = createExpandedMap(allNodeIds);
+
+    const nodeCount = countNodes(data);
+    console.log(`Generated tree with ${nodeCount} nodes for initial render test`);
+
+    await measureRenders(
+      <Tree
+        data={data}
+        onAddNode={() => {}}
+        onDeleteNode={() => {}}
+        onMoveNode={() => {}}
+        expandedNodes={expandedNodes}
+        onToggleExpand={() => {}}
+        highlightedNodeId={null}
         draggingNodeId={null}
         draggingNode={null}
         previewTarget={null}
