@@ -1,8 +1,10 @@
 import { measureRenders } from 'reassure';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Tree } from '../../src/components/Tree';
 import type { TreeNodeData } from '../../src/types';
 import { generateLargeTree, collectAllNodeIds, createExpandedMap, countNodes } from './helpers';
+import { useTreeState } from '../../src/hooks/useTreeState';
+import { useTreeActions } from '../../src/hooks/useTreeActions';
 
 describe('Tree Performance', () => {
   test('renders efficiently with empty tree', async () => {
@@ -381,5 +383,187 @@ describe('Tree Performance', () => {
         onPreviewChange={() => {}}
       />
     );
+  });
+
+  // ===== 実際のアプリケーションと同じパターンでのテスト =====
+
+  test('re-renders efficiently when adding nodes - realistic scenario (100 nodes)', async () => {
+    const TestComponent = () => {
+      // 初期データ生成
+      const initialData = generateLargeTree(100, 4);
+      const initialText = ''; // useTreeStateは初期テキストからパースするが、ここでは直接treeDataを設定
+
+      const { state, dispatch } = useTreeState(initialText);
+      const [treeData, setTreeData] = useState(initialData);
+      const allNodeIds = collectAllNodeIds(treeData);
+      const expandedNodes = createExpandedMap(allNodeIds);
+
+      const nodeCount = countNodes(treeData);
+      console.log(`Generated tree with ${nodeCount} nodes for realistic add node test`);
+
+      // 実際のアプリと同じパターン: treeDataに依存したハンドラー
+      const addNode = useCallback((parentId: string, name: string) => {
+        // 実際のアプリではfindNode(treeData, parentId)でバリデーションするため、treeDataに依存
+        // ここでは簡略化してtreeDataを参照（依存配列に含める）
+        if (treeData.length === 0) return; // treeDataを参照
+
+        setTreeData(prev => {
+          // useTreeStateのreducerと同じロジック
+          const addNodeRecursive = (nodes: TreeNodeData[]): TreeNodeData[] => {
+            return nodes.map(node => {
+              if (node.id === parentId) {
+                const newNode: TreeNodeData = {
+                  id: crypto.randomUUID(),
+                  name,
+                  children: [],
+                };
+                return { ...node, children: [...node.children, newNode] };
+              }
+              if (node.children.length > 0) {
+                return { ...node, children: addNodeRecursive(node.children) };
+              }
+              return node;
+            });
+          };
+          return addNodeRecursive(prev);
+        });
+      }, [treeData]); // ← 実際のアプリと同じく、treeDataに依存
+
+      // scenario関数内で呼び出される関数を公開
+      if (typeof window !== 'undefined') {
+        (window as any).__testAddNode = addNode;
+        (window as any).__testTreeData = treeData;
+      }
+
+      return (
+        <Tree
+          data={treeData}
+          onAddNode={addNode}
+          onDeleteNode={() => {}}
+          onMoveNode={() => {}}
+          expandedNodes={expandedNodes}
+          onToggleExpand={() => {}}
+          highlightedNodeId={null}
+          draggingNodeId={null}
+          draggingNode={null}
+          previewTarget={null}
+          onDragStateChange={() => {}}
+          onPreviewChange={() => {}}
+        />
+      );
+    };
+
+    await measureRenders(<TestComponent />, {
+      scenario: async () => {
+        const treeData = (window as any).__testTreeData as TreeNodeData[];
+        const addNode = (window as any).__testAddNode as (parentId: string, name: string) => void;
+
+        // 最初のルートノードに子を追加
+        if (treeData.length > 0) {
+          const rootId = treeData[0].id;
+          addNode(rootId, 'New Node 1');
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          // さらに追加
+          addNode(rootId, 'New Node 2');
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          // 別のノードにも追加
+          if (treeData[0].children.length > 0) {
+            const childId = treeData[0].children[0].id;
+            addNode(childId, 'New Node 3');
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        }
+      }
+    });
+  });
+
+  test('re-renders efficiently when adding nodes - realistic scenario (300 nodes)', async () => {
+    const TestComponent = () => {
+      // 300ノードの初期データ生成
+      const initialData = generateLargeTree(300, 5);
+      const initialText = '';
+
+      const { state, dispatch } = useTreeState(initialText);
+      const [treeData, setTreeData] = useState(initialData);
+      const allNodeIds = collectAllNodeIds(treeData);
+      const expandedNodes = createExpandedMap(allNodeIds);
+
+      const nodeCount = countNodes(treeData);
+      console.log(`Generated tree with ${nodeCount} nodes for realistic 300-node test`);
+
+      // 実際のアプリと同じパターン: treeDataに依存したハンドラー
+      const addNode = useCallback((parentId: string, name: string) => {
+        if (treeData.length === 0) return;
+
+        setTreeData(prev => {
+          const addNodeRecursive = (nodes: TreeNodeData[]): TreeNodeData[] => {
+            return nodes.map(node => {
+              if (node.id === parentId) {
+                const newNode: TreeNodeData = {
+                  id: crypto.randomUUID(),
+                  name,
+                  children: [],
+                };
+                return { ...node, children: [...node.children, newNode] };
+              }
+              if (node.children.length > 0) {
+                return { ...node, children: addNodeRecursive(node.children) };
+              }
+              return node;
+            });
+          };
+          return addNodeRecursive(prev);
+        });
+      }, [treeData]);
+
+      if (typeof window !== 'undefined') {
+        (window as any).__testAddNode = addNode;
+        (window as any).__testTreeData = treeData;
+      }
+
+      return (
+        <Tree
+          data={treeData}
+          onAddNode={addNode}
+          onDeleteNode={() => {}}
+          onMoveNode={() => {}}
+          expandedNodes={expandedNodes}
+          onToggleExpand={() => {}}
+          highlightedNodeId={null}
+          draggingNodeId={null}
+          draggingNode={null}
+          previewTarget={null}
+          onDragStateChange={() => {}}
+          onPreviewChange={() => {}}
+        />
+      );
+    };
+
+    await measureRenders(<TestComponent />, {
+      scenario: async () => {
+        const treeData = (window as any).__testTreeData as TreeNodeData[];
+        const addNode = (window as any).__testAddNode as (parentId: string, name: string) => void;
+
+        // 最初のルートノードに子を追加
+        if (treeData.length > 0) {
+          const rootId = treeData[0].id;
+          addNode(rootId, 'New Node 1');
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          // さらに追加
+          addNode(rootId, 'New Node 2');
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          // 別のノードにも追加
+          if (treeData[0].children.length > 0) {
+            const childId = treeData[0].children[0].id;
+            addNode(childId, 'New Node 3');
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        }
+      }
+    });
   });
 });
