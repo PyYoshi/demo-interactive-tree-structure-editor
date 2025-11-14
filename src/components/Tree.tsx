@@ -7,6 +7,7 @@ interface TreeProps {
   onAddNode: (parentId: string, name: string) => void;
   onDeleteNode: (nodeId: string) => void;
   onMoveNode: (sourceId: string, targetId: string, position: 'before' | 'after' | 'inside') => void;
+  onRenameNode: (nodeId: string, newName: string) => void;
   expandedNodes: Map<string, boolean>;
   onToggleExpand: (nodeId: string, newExpandedState: boolean) => void;
   highlightedNodeId: string | null;
@@ -22,6 +23,7 @@ const TreeComponent: FC<TreeProps> = ({
   onAddNode,
   onDeleteNode,
   onMoveNode,
+  onRenameNode,
   expandedNodes,
   onToggleExpand,
   highlightedNodeId,
@@ -41,6 +43,7 @@ const TreeComponent: FC<TreeProps> = ({
           onAddNode={onAddNode}
           onDeleteNode={onDeleteNode}
           onMoveNode={onMoveNode}
+          onRenameNode={onRenameNode}
           expandedNodes={expandedNodes}
           onToggleExpand={onToggleExpand}
           highlightedNodeId={highlightedNodeId}

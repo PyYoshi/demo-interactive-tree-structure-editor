@@ -460,4 +460,170 @@ describe('useTreeState', () => {
       expect(result.current.state.highlightedNodeId).toBeNull();
     });
   });
+
+  describe('RENAME_NODE', () => {
+    it('ノード名を変更できる', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '大学 > 文学部 > 日本文学科'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: nihonbungakuId, newName: '国文学科' }
+        });
+      });
+
+      const renamed = result.current.state.treeData[0].children[0].children[0];
+      expect(renamed.name).toBe('国文学科');
+      expect(renamed.id).toBe(nihonbungakuId);
+    });
+
+    it('ルートノード名を変更できる', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_ROOT_NODE',
+          payload: { name: '大学' }
+        });
+      });
+
+      const rootId = result.current.state.treeData[0].id;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: rootId, newName: '総合大学' }
+        });
+      });
+
+      expect(result.current.state.treeData[0].name).toBe('総合大学');
+    });
+
+    it('同一階層に同じ名前が存在する場合は変更できない', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '大学 > 文学部 > 日本文学科\n大学 > 文学部 > 英文学科'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: nihonbungakuId, newName: '英文学科' }
+        });
+      });
+
+      // 変更されていないことを確認
+      const node = result.current.state.treeData[0].children[0].children[0];
+      expect(node.name).toBe('日本文学科');
+    });
+
+    it('異なる階層に同じ名前が存在する場合は変更できる', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '大学 > 文学部 > 日本文学科\n大学 > 理学部 > 英文学科'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: nihonbungakuId, newName: '英文学科' }
+        });
+      });
+
+      // 変更されていることを確認
+      const node = result.current.state.treeData[0].children[0].children[0];
+      expect(node.name).toBe('英文学科');
+    });
+
+    it('存在しないノードを変更しようとした場合は何も変更されない', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'ADD_ROOT_NODE',
+          payload: { name: '大学' }
+        });
+      });
+
+      const beforeState = result.current.state.treeData;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: 'non-existent-id', newName: '新しい名前' }
+        });
+      });
+
+      expect(result.current.state.treeData).toEqual(beforeState);
+    });
+
+    it('名前に前後の空白がある場合もトリムされた名前で重複チェックされる', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '大学 > 文学部 > 日本文学科\n大学 > 文学部 > 英文学科'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: nihonbungakuId, newName: '  英文学科  ' }
+        });
+      });
+
+      // 変更されていないことを確認（重複しているため）
+      const node = result.current.state.treeData[0].children[0].children[0];
+      expect(node.name).toBe('日本文学科');
+    });
+
+    it('自分自身は重複チェックから除外される', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '大学 > 文学部 > 日本文学科'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+
+      act(() => {
+        result.current.dispatch({
+          type: 'RENAME_NODE',
+          payload: { nodeId: nihonbungakuId, newName: '日本文学科' }
+        });
+      });
+
+      // 同じ名前でも変更可能（自分自身は除外されるため）
+      const node = result.current.state.treeData[0].children[0].children[0];
+      expect(node.name).toBe('日本文学科');
+    });
+  });
 });

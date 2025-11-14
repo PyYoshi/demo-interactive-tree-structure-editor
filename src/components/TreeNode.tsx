@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import type { FC, ReactNode, FormEvent, DragEvent } from 'react';
 import type { TreeNodeData } from '../types';
-import { AddIcon, DeleteIcon, ChevronDownIcon, ChevronRightIcon } from './icons';
+import { AddIcon, DeleteIcon, ChevronDownIcon, ChevronRightIcon, EditIcon } from './icons';
 
 type DropPosition = 'before' | 'after' | 'inside';
 
@@ -11,6 +11,7 @@ interface TreeNodeProps {
   onAddNode: (parentId: string, name: string) => void;
   onDeleteNode: (nodeId:string) => void;
   onMoveNode: (sourceId: string, targetId: string, position: DropPosition) => void;
+  onRenameNode: (nodeId: string, newName: string) => void;
   expandedNodes: Map<string, boolean>;
   onToggleExpand: (nodeId: string, newExpandedState: boolean) => void;
   highlightedNodeId: string | null;
@@ -43,6 +44,7 @@ const TreeNodeComponent: FC<TreeNodeProps> = ({
   onAddNode,
   onDeleteNode,
   onMoveNode,
+  onRenameNode,
   expandedNodes,
   onToggleExpand,
   highlightedNodeId,
@@ -54,6 +56,8 @@ const TreeNodeComponent: FC<TreeNodeProps> = ({
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newNodeName, setNewNodeName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [dropPosition, setDropPosition] = useState<DropPosition | null>(null);
   const [isInvalidDrop, setIsInvalidDrop] = useState(false);
@@ -97,6 +101,24 @@ const TreeNodeComponent: FC<TreeNodeProps> = ({
       setIsAdding(false);
       onToggleExpand(node.id, true);
     }
+  };
+
+  const handleRenameStart = () => {
+    setRenameValue(node.name);
+    setIsRenaming(true);
+  };
+
+  const handleRenameSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (renameValue.trim() && renameValue.trim() !== node.name) {
+      onRenameNode(node.id, renameValue.trim());
+    }
+    setIsRenaming(false);
+  };
+
+  const handleRenameCancel = () => {
+    setIsRenaming(false);
+    setRenameValue('');
   };
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
@@ -212,9 +234,36 @@ const TreeNodeComponent: FC<TreeNodeProps> = ({
           ) : (
             <span className="w-6 mr-1"></span>
           )}
-          <span className="text-gray-800 select-none truncate">{node.name}</span>
+          {isRenaming ? (
+            <form onSubmit={handleRenameSubmit} className="flex items-center space-x-2 flex-grow">
+              <input
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                autoFocus
+                className="flex-grow px-2 py-1 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                onBlur={handleRenameCancel}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    handleRenameCancel();
+                  }
+                }}
+              />
+            </form>
+          ) : (
+            <span
+              className="text-gray-800 select-none truncate cursor-text"
+              onDoubleClick={handleRenameStart}
+              title="ダブルクリックで名前を編集"
+            >
+              {node.name}
+            </span>
+          )}
         </div>
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <ActionButton onClick={handleRenameStart} title="名前を変更">
+                <EditIcon />
+            </ActionButton>
             <ActionButton onClick={() => setIsAdding(true)} title="子ノードを追加">
                 <AddIcon />
             </ActionButton>
@@ -279,6 +328,7 @@ const TreeNodeComponent: FC<TreeNodeProps> = ({
               onAddNode={onAddNode}
               onDeleteNode={onDeleteNode}
               onMoveNode={onMoveNode}
+              onRenameNode={onRenameNode}
               expandedNodes={expandedNodes}
               onToggleExpand={onToggleExpand}
               highlightedNodeId={highlightedNodeId}

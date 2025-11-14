@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { Dispatch } from 'react';
 import type { TreeAction, ActionResult } from './useTreeState';
-import { hasDuplicateNameInSiblings, findNode, getDestinationSiblings } from '../utils/treeOperations';
+import { hasDuplicateNameInSiblings, findNode, getDestinationSiblings, findParentNode } from '../utils/treeOperations';
 import type { TreeNodeData } from '../types';
 
 export interface TreeActions {
@@ -11,6 +11,7 @@ export interface TreeActions {
     addNode: (parentId: string, name: string) => ActionResult;
     deleteNode: (nodeId: string) => ActionResult;
     moveNode: (sourceId: string, targetId: string, position: 'before' | 'after' | 'inside') => ActionResult;
+    renameNode: (nodeId: string, newName: string) => ActionResult;
     highlightNode: (nodeId: string | null) => void;
     clearTree: () => void;
 }
@@ -148,6 +149,37 @@ export const useTreeActions = (
         dispatch({ type: 'HIGHLIGHT_NODE', payload: { nodeId } });
     }, [dispatch]);
 
+    const renameNode = useCallback((nodeId: string, newName: string): ActionResult => {
+        if (!newName.trim()) {
+            const message = 'ノード名を入力してください';
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
+        // ノードを検索
+        const targetNode = findNode(treeData, nodeId);
+        if (!targetNode) {
+            const message = 'ノードが見つかりません';
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
+        // 親ノードを検索して兄弟ノードを取得
+        const parentNode = findParentNode(treeData, nodeId);
+        const siblings = parentNode ? parentNode.children : treeData;
+
+        // 同一階層での重複チェック（自分自身は除外）
+        if (hasDuplicateNameInSiblings(siblings, newName, nodeId)) {
+            const message = `同じ名前のノード「${newName.trim()}」が既に存在します`;
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
+        dispatch({ type: 'RENAME_NODE', payload: { nodeId, newName: newName.trim() } });
+        onFeedback?.('success', `ノード名を「${newName.trim()}」に変更しました`);
+        return { success: true, message: 'ノード名を変更しました' };
+    }, [dispatch, treeData, onFeedback]);
+
     const clearTree = useCallback(() => {
         dispatch({ type: 'CLEAR_TREE' });
         onFeedback?.('success', 'ツリーをクリアしました');
@@ -160,6 +192,7 @@ export const useTreeActions = (
         addNode,
         deleteNode,
         moveNode,
+        renameNode,
         highlightNode,
         clearTree,
     };

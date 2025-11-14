@@ -1,7 +1,7 @@
 import { useReducer, Reducer } from 'react';
 import type { TreeNodeData } from '../types';
 import { parseData } from '../utils/treeParser';
-import { removeNodeRecursive, insertNodeRecursive, isDescendant, hasDuplicateNameInSiblings, findNode, getDestinationSiblings } from '../utils/treeOperations';
+import { removeNodeRecursive, insertNodeRecursive, isDescendant, hasDuplicateNameInSiblings, findNode, getDestinationSiblings, findParentNode } from '../utils/treeOperations';
 
 // 状態の型定義
 export interface TreeState {
@@ -18,6 +18,7 @@ export type TreeAction =
     | { type: 'ADD_ROOT_NODE'; payload: { name: string } }
     | { type: 'DELETE_NODE'; payload: { nodeId: string } }
     | { type: 'MOVE_NODE'; payload: { sourceId: string; targetId: string; position: 'before' | 'after' | 'inside' } }
+    | { type: 'RENAME_NODE'; payload: { nodeId: string; newName: string } }
     | { type: 'HIGHLIGHT_NODE'; payload: { nodeId: string | null } }
     | { type: 'CLEAR_TREE' };
 
@@ -181,6 +182,43 @@ const treeReducer: Reducer<TreeState, TreeAction> = (state, action) => {
 
             logAction(action, 'success', `ノード移動: ${sourceId} → ${targetId} (${position})`);
             return { ...state, treeData: newTree };
+        }
+
+        case 'RENAME_NODE': {
+            const { nodeId, newName } = action.payload;
+
+            // ノードを検索（防御的）
+            const targetNode = findNode(state.treeData, nodeId);
+            if (!targetNode) {
+                logAction(action, 'error', `ノードが見つかりません: ${nodeId}`);
+                return state;
+            }
+
+            // 親ノードを検索して兄弟ノードを取得
+            const parentNode = findParentNode(state.treeData, nodeId);
+            const siblings = parentNode ? parentNode.children : state.treeData;
+
+            // 同一階層での重複チェック（防御的、自分自身は除外）
+            if (hasDuplicateNameInSiblings(siblings, newName, nodeId)) {
+                logAction(action, 'error', `同じ名前のノードが既に存在します: ${newName}`);
+                return state;
+            }
+
+            // ノード名を更新
+            const renameNodeRecursive = (nodes: TreeNodeData[]): TreeNodeData[] => {
+                return nodes.map(node => {
+                    if (node.id === nodeId) {
+                        return { ...node, name: newName };
+                    }
+                    if (node.children.length > 0) {
+                        return { ...node, children: renameNodeRecursive(node.children) };
+                    }
+                    return node;
+                });
+            };
+
+            logAction(action, 'success', `ノード名変更: ${targetNode.name} → ${newName}`);
+            return { ...state, treeData: renameNodeRecursive(state.treeData) };
         }
 
         case 'HIGHLIGHT_NODE':

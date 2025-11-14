@@ -583,6 +583,210 @@ describe('useTreeActions', () => {
     });
   });
 
+  describe('renameNode', () => {
+    it('ノード名を変更できる', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            { id: 'child-id', name: '文学部', children: [] }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('child-id', '理学部');
+
+      expect(actionResult.success).toBe(true);
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: 'RENAME_NODE',
+        payload: { nodeId: 'child-id', newName: '理学部' }
+      });
+      expect(onFeedbackMock).toHaveBeenCalledWith('success', 'ノード名を「理学部」に変更しました');
+    });
+
+    it('空のノード名では変更できない', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            { id: 'child-id', name: '文学部', children: [] }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('child-id', '');
+
+      expect(actionResult.success).toBe(false);
+      expect(actionResult.error).toBe('ノード名を入力してください');
+      expect(dispatchMock).not.toHaveBeenCalled();
+      expect(onFeedbackMock).toHaveBeenCalledWith('error', 'ノード名を入力してください');
+    });
+
+    it('空白のみのノード名では変更できない', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            { id: 'child-id', name: '文学部', children: [] }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('child-id', '   ');
+
+      expect(actionResult.success).toBe(false);
+      expect(dispatchMock).not.toHaveBeenCalled();
+    });
+
+    it('存在しないノードを変更しようとすると失敗する', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            { id: 'child-id', name: '文学部', children: [] }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('non-existent-id', '理学部');
+
+      expect(actionResult.success).toBe(false);
+      expect(actionResult.error).toBe('ノードが見つかりません');
+      expect(dispatchMock).not.toHaveBeenCalled();
+      expect(onFeedbackMock).toHaveBeenCalledWith('error', 'ノードが見つかりません');
+    });
+
+    it('同一階層に同じ名前のノードが既に存在する場合は変更できない', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            { id: 'child-1', name: '文学部', children: [] },
+            { id: 'child-2', name: '理学部', children: [] }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('child-1', '理学部');
+
+      expect(actionResult.success).toBe(false);
+      expect(actionResult.error).toBe('同じ名前のノード「理学部」が既に存在します');
+      expect(dispatchMock).not.toHaveBeenCalled();
+      expect(onFeedbackMock).toHaveBeenCalledWith('error', '同じ名前のノード「理学部」が既に存在します');
+    });
+
+    it('異なる階層に同じ名前のノードが存在する場合は変更できる', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            {
+              id: 'child-1',
+              name: '文学部',
+              children: [
+                { id: 'grandchild-1', name: '日本文学科', children: [] }
+              ]
+            },
+            {
+              id: 'child-2',
+              name: '理学部',
+              children: [
+                { id: 'grandchild-2', name: '数学科', children: [] }
+              ]
+            }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      // 文学部配下の「日本文学科」を「数学科」に変更（理学部配下に「数学科」が存在するが異なる階層なのでOK）
+      const actionResult = result.current.renameNode('grandchild-1', '数学科');
+
+      expect(actionResult.success).toBe(true);
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: 'RENAME_NODE',
+        payload: { nodeId: 'grandchild-1', newName: '数学科' }
+      });
+    });
+
+    it('ルートノード名を変更できる', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: []
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('root-id', '総合大学');
+
+      expect(actionResult.success).toBe(true);
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: 'RENAME_NODE',
+        payload: { nodeId: 'root-id', newName: '総合大学' }
+      });
+      expect(onFeedbackMock).toHaveBeenCalledWith('success', 'ノード名を「総合大学」に変更しました');
+    });
+
+    it('名前の前後の空白はトリムされる', () => {
+      const existingTreeData: TreeNodeData[] = [
+        {
+          id: 'root-id',
+          name: '大学',
+          children: [
+            { id: 'child-id', name: '文学部', children: [] }
+          ]
+        }
+      ];
+
+      const { result } = renderHook(() =>
+        useTreeActions(dispatchMock, existingTreeData, onFeedbackMock)
+      );
+
+      const actionResult = result.current.renameNode('child-id', '  理学部  ');
+
+      expect(actionResult.success).toBe(true);
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: 'RENAME_NODE',
+        payload: { nodeId: 'child-id', newName: '理学部' }
+      });
+      expect(onFeedbackMock).toHaveBeenCalledWith('success', 'ノード名を「理学部」に変更しました');
+    });
+  });
+
   describe('onFeedbackがオプショナル', () => {
     it('onFeedbackなしでも動作する', () => {
       const { result } = renderHook(() =>

@@ -239,4 +239,190 @@ test.describe('基本的な機能', () => {
     // エラーメッセージが表示されることを確認
     await expect(page.getByText('同じ名前のノード「文学部」が既に存在します')).toBeVisible();
   });
+
+  test('Editボタンでノード名を変更できる', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+
+    // 文学部ノードをホバーして編集ボタンを表示
+    await page.getByRole('tree').getByText('文学部').hover();
+
+    // 名前を変更ボタンをクリック
+    await page.locator('[aria-label="名前を変更"]').first().click();
+
+    // 入力フィールドに新しい名前を入力してEnterキー
+    await page.locator('input[type="text"]').fill('理学部');
+    await page.locator('input[type="text"]').press('Enter');
+
+    // 名前が変更されることを確認
+    await expect(page.getByRole('tree').getByText('理学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('文学部')).not.toBeVisible();
+
+    // 成功メッセージの確認
+    await expect(page.getByText('ノード名を「理学部」に変更しました')).toBeVisible();
+  });
+
+  test('ノード名をダブルクリックで変更できる', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+
+    // 文学部ノードをダブルクリック
+    await page.getByRole('tree').getByText('文学部').dblclick();
+
+    // 入力フィールドが表示されることを確認
+    const input = page.locator('input[type="text"]');
+    await expect(input).toBeVisible();
+
+    // 新しい名前を入力してEnterキー
+    await input.fill('理学部');
+    await input.press('Enter');
+
+    // 名前が変更されることを確認
+    await expect(page.getByRole('tree').getByText('理学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('文学部')).not.toBeVisible();
+
+    // 成功メッセージの確認
+    await expect(page.getByText('ノード名を「理学部」に変更しました')).toBeVisible();
+  });
+
+  test('Escapeキーで名前変更をキャンセルできる', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+
+    // 文学部ノードをダブルクリック
+    await page.getByRole('tree').getByText('文学部').dblclick();
+
+    // 入力フィールドが表示されることを確認
+    const input = page.locator('input[type="text"]');
+    await expect(input).toBeVisible();
+
+    // 新しい名前を入力してEscapeキー
+    await input.fill('理学部');
+    await input.press('Escape');
+
+    // 入力フィールドが閉じることを確認
+    await expect(input).not.toBeVisible();
+
+    // 元の名前（文学部）のままであることを確認
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('理学部')).not.toBeVisible();
+  });
+
+  test('名前変更時に同一階層で重複する名前は使えない', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部\n大学 > 理学部';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('理学部')).toBeVisible();
+
+    // 文学部ノードをダブルクリック
+    await page.getByRole('tree').getByText('文学部').dblclick();
+
+    // 理学部に変更しようとする
+    const input = page.locator('input[type="text"]');
+    await input.fill('理学部');
+    await input.press('Enter');
+
+    // エラーメッセージが表示されることを確認
+    await expect(page.getByText('同じ名前のノード「理学部」が既に存在します')).toBeVisible();
+
+    // 元の名前（文学部）のままであることを確認
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+  });
+
+  test('名前変更時に異なる階層であれば同じ名前を使える', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部 > 日本文学科\n大学 > 理学部 > 数学科';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('日本文学科')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('数学科')).toBeVisible();
+
+    // 日本文学科ノードをダブルクリック
+    await page.getByRole('tree').getByText('日本文学科').dblclick();
+
+    // 数学科に変更する（異なる階層なのでOK）
+    const input = page.locator('input[type="text"]');
+    await input.fill('数学科');
+    await input.press('Enter');
+
+    // 成功メッセージが表示される
+    await expect(page.getByText('ノード名を「数学科」に変更しました')).toBeVisible();
+
+    // 2つの数学科が存在する
+    const suugakukaNodes = page.getByRole('tree').getByText('数学科', { exact: true });
+    await expect(suugakukaNodes).toHaveCount(2);
+  });
+
+  test('ルートノード名を変更できる', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('大学')).toBeVisible();
+
+    // 大学ノードをダブルクリック
+    await page.getByRole('tree').getByText('大学').dblclick();
+
+    // 総合大学に変更
+    const input = page.locator('input[type="text"]');
+    await input.fill('総合大学');
+    await input.press('Enter');
+
+    // 名前が変更されることを確認
+    await expect(page.getByRole('tree').getByText('総合大学')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('大学')).not.toBeVisible();
+
+    // 子ノード（文学部）は残っている
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+
+    // 成功メッセージの確認
+    await expect(page.getByText('ノード名を「総合大学」に変更しました')).toBeVisible();
+  });
+
+  test('空のノード名には変更できない', async ({ page }) => {
+    // データをインポート
+    const importData = '大学 > 文学部';
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+
+    // 文学部ノードをダブルクリック
+    await page.getByRole('tree').getByText('文学部').dblclick();
+
+    // 空の名前に変更しようとする
+    const input = page.locator('input[type="text"]');
+    await input.fill('');
+    await input.press('Enter');
+
+    // エラーメッセージが表示される
+    await expect(page.getByText('ノード名を入力してください')).toBeVisible();
+
+    // 元の名前（文学部）のままであることを確認
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
+  });
 });

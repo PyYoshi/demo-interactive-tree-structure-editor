@@ -54,6 +54,7 @@ const App: FC = () => {
                             onAddNode={actions.addNode}
                             onDeleteNode={actions.deleteNode}
                             onMoveNode={actions.moveNode}
+                            onRenameNode={actions.renameNode}
                             expandedNodes={expandedNodes}
                             onToggleExpand={toggleExpand}
                             highlightedNodeId={highlightedNodeId}
