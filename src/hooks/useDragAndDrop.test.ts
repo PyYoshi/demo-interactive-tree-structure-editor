@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useDragAndDrop } from './useDragAndDrop';
 import type { TreeNodeData } from '../types';

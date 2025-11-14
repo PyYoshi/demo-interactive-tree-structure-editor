@@ -1,23 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTreeActions } from './useTreeActions';
 import type { TreeAction } from './useTreeState';
 import type { TreeNodeData } from '../types';
 
 describe('useTreeActions', () => {
-  let dispatchMock: ReturnType<typeof vi.fn<[TreeAction], void>>;
-  let onFeedbackMock: ReturnType<typeof vi.fn<[type: 'success' | 'error' | 'warning', message: string], void>>;
+  let dispatchMock: ReturnType<typeof jest.fn<[TreeAction], void>>;
+  let onFeedbackMock: ReturnType<typeof jest.fn<[type: 'success' | 'error' | 'warning', message: string], void>>;
   let treeData: TreeNodeData[];
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    dispatchMock = vi.fn();
-    onFeedbackMock = vi.fn();
+    jest.useFakeTimers();
+    dispatchMock = jest.fn();
+    onFeedbackMock = jest.fn();
     treeData = [];
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('setInputText', () => {
@@ -395,7 +394,7 @@ describe('useTreeActions', () => {
       expect(dispatchMock).toHaveBeenCalledTimes(2);
 
       act(() => {
-        vi.advanceTimersByTime(1500);
+        jest.advanceTimersByTime(1500);
       });
 
       expect(dispatchMock).toHaveBeenCalledTimes(3);

@@ -2,8 +2,11 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
 
-  // パフォーマンステストのみを対象
-  testMatch: ['**/__tests__/performance/**/*.perf.test.{ts,tsx}'],
+  // ユニットテスト + パフォーマンステストの両方を対象
+  testMatch: [
+    '**/__tests__/performance/**/*.perf.test.{ts,tsx}',  // パフォーマンステスト
+    '**/src/**/*.test.{ts,tsx}'  // ユニットテスト
+  ],
 
   // TypeScript と JSX のトランスパイル
   transform: {

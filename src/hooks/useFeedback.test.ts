@@ -1,14 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFeedback } from './useFeedback';
 
 describe('useFeedback', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('初期化', () => {
@@ -108,7 +107,7 @@ describe('useFeedback', () => {
 
       // 3秒経過
       act(() => {
-        vi.advanceTimersByTime(3000);
+        jest.advanceTimersByTime(3000);
       });
 
       expect(result.current.messages).toHaveLength(0);
@@ -123,7 +122,7 @@ describe('useFeedback', () => {
 
       // 1秒後に2つ目のメッセージ
       act(() => {
-        vi.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(1000);
       });
 
       act(() => {
@@ -134,7 +133,7 @@ describe('useFeedback', () => {
 
       // さらに2秒経過（最初のメッセージから3秒）
       act(() => {
-        vi.advanceTimersByTime(2000);
+        jest.advanceTimersByTime(2000);
       });
 
       // 最初のメッセージのみ削除される
@@ -143,7 +142,7 @@ describe('useFeedback', () => {
 
       // さらに1秒経過（2つ目のメッセージから3秒）
       act(() => {
-        vi.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(1000);
       });
 
       // すべてのメッセージが削除される
@@ -159,7 +158,7 @@ describe('useFeedback', () => {
 
       // 2秒経過
       act(() => {
-        vi.advanceTimersByTime(2000);
+        jest.advanceTimersByTime(2000);
       });
 
       // まだ削除されていない
@@ -244,7 +243,7 @@ describe('useFeedback', () => {
 
       // 3秒経過
       act(() => {
-        vi.advanceTimersByTime(3000);
+        jest.advanceTimersByTime(3000);
       });
 
       // メッセージ2も削除される

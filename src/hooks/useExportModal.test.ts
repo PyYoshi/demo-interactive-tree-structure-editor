@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useExportModal } from './useExportModal';
 import type { TreeNodeData } from '../types';
@@ -24,11 +23,11 @@ const createTestTree = (): TreeNodeData[] => {
 };
 
 describe('useExportModal', () => {
-  let clipboardWriteTextMock: ReturnType<typeof vi.fn>;
+  let clipboardWriteTextMock: ReturnType<typeof jest.fn>;
 
   beforeEach(() => {
-    vi.useFakeTimers();
-    clipboardWriteTextMock = vi.fn().mockResolvedValue(undefined);
+    jest.useFakeTimers();
+    clipboardWriteTextMock = jest.fn().mockResolvedValue(undefined);
     Object.assign(navigator, {
       clipboard: {
         writeText: clipboardWriteTextMock,
@@ -37,7 +36,7 @@ describe('useExportModal', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('初期化', () => {
@@ -195,7 +194,7 @@ describe('useExportModal', () => {
       expect(result.current.copyButtonText).toBe('コピーしました！');
 
       act(() => {
-        vi.advanceTimersByTime(2000);
+        jest.advanceTimersByTime(2000);
       });
 
       expect(result.current.copyButtonText).toBe('コピー');
@@ -214,15 +213,15 @@ describe('useExportModal', () => {
       });
 
       act(() => {
-        vi.advanceTimersByTime(1000);
+        jest.advanceTimersByTime(1000);
       });
 
       expect(result.current.copyButtonText).toBe('コピーしました！');
     });
 
     it('コピーに失敗した場合、エラーログが出力される', async () => {
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
       const error = new Error('Copy failed');
       clipboardWriteTextMock.mockRejectedValueOnce(error);

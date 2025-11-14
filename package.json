@@ -7,11 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:all": "vitest --run && playwright test --reporter=list",
-    "test:ci": "vitest --run",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
+    "test": "jest --testPathIgnorePatterns='.perf.test'",
+    "test:all": "jest && playwright test --reporter=list",
+    "test:ci": "jest --ci --testPathIgnorePatterns='.perf.test'",
+    "test:watch": "jest --watch --testPathIgnorePatterns='.perf.test'",
+    "test:coverage": "jest --coverage --testPathIgnorePatterns='.perf.test'",
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=list",
     "test:e2e:ui": "playwright test --ui",
@@ -34,7 +34,6 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "@vitest/ui": "^4.0.8",
     "autoprefixer": "^10.4.22",
     "cross-env": "^10.1.0",
     "jest": "^30.2.0",
@@ -45,7 +44,6 @@
     "tailwindcss": "^4.1.17",
     "ts-jest": "^29.4.5",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "vitest": "^4.0.8"
+    "vite": "^6.2.0"
   }
 }

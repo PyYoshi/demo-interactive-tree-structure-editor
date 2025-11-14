@@ -1,14 +1,17 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useTreeState } from './useTreeState';
 import type { TreeNodeData } from '../types';
 
 // crypto.randomUUID()のモック
+let idCounter = 0;
+
 beforeEach(() => {
-  let idCounter = 0;
-  vi.stubGlobal('crypto', {
-    randomUUID: () => `test-id-${++idCounter}`
-  });
+  idCounter = 0;
+  jest.spyOn(global.crypto, 'randomUUID').mockImplementation(() => `test-id-${++idCounter}`);
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 describe('useTreeState', () => {
