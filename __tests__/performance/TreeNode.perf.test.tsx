@@ -1,5 +1,4 @@
-import { describe, test } from 'vitest';
-import { measurePerformance } from 'reassure';
+import { measureRenders } from 'reassure';
 import { TreeNode } from '../../src/components/TreeNode';
 import type { TreeNodeData } from '../../src/types';
 
@@ -11,7 +10,7 @@ describe('TreeNode Performance', () => {
       children: []
     };
 
-    await measurePerformance(
+    await measureRenders(
       <TreeNode
         node={mockNode}
         level={0}
@@ -41,7 +40,7 @@ describe('TreeNode Performance', () => {
       ]
     };
 
-    await measurePerformance(
+    await measureRenders(
       <TreeNode
         node={mockNode}
         level={0}
@@ -84,7 +83,7 @@ describe('TreeNode Performance', () => {
       ]
     };
 
-    await measurePerformance(
+    await measureRenders(
       <TreeNode
         node={mockNode}
         level={0}
@@ -114,7 +113,7 @@ describe('TreeNode Performance', () => {
       children: []
     };
 
-    await measurePerformance(
+    await measureRenders(
       <TreeNode
         node={mockNode}
         level={0}
@@ -140,7 +139,7 @@ describe('TreeNode Performance', () => {
       children: []
     };
 
-    await measurePerformance(
+    await measureRenders(
       <TreeNode
         node={mockNode}
         level={0}

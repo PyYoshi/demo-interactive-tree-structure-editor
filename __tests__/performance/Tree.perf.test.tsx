@@ -1,5 +1,4 @@
-import { describe, test } from 'vitest';
-import { measurePerformance } from 'reassure';
+import { measureRenders } from 'reassure';
 import { Tree } from '../../src/components/Tree';
 import type { TreeNodeData } from '../../src/types';
 
@@ -7,7 +6,7 @@ describe('Tree Performance', () => {
   test('renders efficiently with empty tree', async () => {
     const data: TreeNodeData[] = [];
 
-    await measurePerformance(
+    await measureRenders(
       <Tree
         data={data}
         onAddNode={() => {}}
@@ -34,7 +33,7 @@ describe('Tree Performance', () => {
       { id: '5', name: 'ノード5', children: [] },
     ];
 
-    await measurePerformance(
+    await measureRenders(
       <Tree
         data={data}
         onAddNode={() => {}}
@@ -86,7 +85,7 @@ describe('Tree Performance', () => {
       },
     ];
 
-    await measurePerformance(
+    await measureRenders(
       <Tree
         data={data}
         onAddNode={() => {}}
@@ -157,7 +156,7 @@ describe('Tree Performance', () => {
       expandedNodes.set(String(i), true);
     }
 
-    await measurePerformance(
+    await measureRenders(
       <Tree
         data={data}
         onAddNode={() => {}}
@@ -188,7 +187,7 @@ describe('Tree Performance', () => {
       },
     ];
 
-    await measurePerformance(
+    await measureRenders(
       <Tree
         data={data}
         onAddNode={() => {}}
