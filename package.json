@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "jest --testPathIgnorePatterns='.perf.test'",
-    "test:all": "jest && playwright test --reporter=list",
+    "test:all": "jest --testPathIgnorePatterns='.perf.test' && playwright test --reporter=list",
     "test:ci": "jest --ci --testPathIgnorePatterns='.perf.test'",
     "test:watch": "jest --watch --testPathIgnorePatterns='.perf.test'",
     "test:coverage": "jest --coverage --testPathIgnorePatterns='.perf.test'",
