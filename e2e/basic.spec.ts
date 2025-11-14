@@ -19,8 +19,8 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: 'ツリーを生成' }).click();
 
     // ツリーにノードが表示されることを確認
-    await expect(page.getByText('大学')).toBeVisible();
-    await expect(page.getByText('文学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('大学')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
 
     // 成功メッセージの確認
     await expect(page.getByText('データをインポートしました')).toBeVisible();
@@ -37,7 +37,7 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: '保存' }).click();
 
     // ツリーにノードが表示されることを確認
-    await expect(page.getByText('企業')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('企業')).toBeVisible();
 
     // 成功メッセージの確認
     await expect(page.getByText('ルートノード「企業」を追加しました')).toBeVisible();
@@ -50,10 +50,10 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: '保存' }).click();
 
     // ルートノードが表示されるまで待つ
-    await expect(page.getByText('大学')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('大学')).toBeVisible();
 
     // 大学ノードをホバーして追加ボタンを表示
-    await page.getByText('大学').hover();
+    await page.getByRole('tree').getByText('大学').hover();
 
     // 追加ボタンをクリック
     await page.locator('[aria-label="子ノードを追加"]').first().click();
@@ -65,7 +65,7 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: '追加' }).click();
 
     // 子ノードが表示されることを確認
-    await expect(page.getByText('文学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
 
     // 成功メッセージの確認
     await expect(page.getByText('ノード「文学部」を追加しました')).toBeVisible();
@@ -78,16 +78,16 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: 'ツリーを生成' }).click();
 
     // ノードが表示されるまで待つ
-    await expect(page.getByText('文学部')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
 
     // 文学部ノードをホバーして削除ボタンを表示
-    await page.getByText('文学部').hover();
+    await page.getByRole('tree').getByText('文学部').hover();
 
     // 削除ボタンをクリック
     await page.locator('[aria-label="削除"]').first().click();
 
     // 文学部ノードが削除されることを確認
-    await expect(page.getByText('文学部')).not.toBeVisible();
+    await expect(page.getByRole('tree').getByText('文学部')).not.toBeVisible();
 
     // 成功メッセージの確認
     await expect(page.getByText('ノードを削除しました')).toBeVisible();
@@ -99,13 +99,13 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: 'ツリーを生成' }).click();
 
     // ノードが表示されることを確認
-    await expect(page.getByText('大学')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('大学')).toBeVisible();
 
     // クリアボタンをクリック
     await page.getByRole('button', { name: 'クリア' }).click();
 
     // ノードが削除されることを確認
-    await expect(page.getByText('大学')).not.toBeVisible();
+    await expect(page.getByRole('tree').getByText('大学')).not.toBeVisible();
 
     // 成功メッセージの確認
     await expect(page.getByText('ツリーをクリアしました')).toBeVisible();
@@ -136,7 +136,7 @@ test.describe('基本的な機能', () => {
     await page.getByRole('button', { name: '保存' }).click();
 
     // ルートノードが表示されるまで待つ
-    await expect(page.getByText('大学')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('大学')).toBeVisible();
 
     // 2つ目のルートノードを追加しようとする（ボタンが表示されないはず）
     // EmptyTreeStateは表示されないので、ルートノード追加ボタンが無いことを確認

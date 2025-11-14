@@ -23,11 +23,14 @@ export const ExportModal: FC<ExportModalProps> = ({
             onClick={onClose}
         >
             <div
+                role="dialog"
+                aria-labelledby="export-modal-title"
+                aria-modal="true"
                 className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 <header className="p-4 border-b">
-                    <h2 className="text-xl font-semibold">エクスポートされたデータ</h2>
+                    <h2 id="export-modal-title" className="text-xl font-semibold">エクスポートされたデータ</h2>
                 </header>
                 <main className="p-4 flex-grow overflow-y-auto">
                     <textarea

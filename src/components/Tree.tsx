@@ -32,7 +32,7 @@ export const Tree: FC<TreeProps> = ({
   onPreviewChange
 }) => {
   return (
-    <div>
+    <div role="tree" aria-label="階層構造">
       {data.map((node) => (
         <TreeNode
           key={node.id}

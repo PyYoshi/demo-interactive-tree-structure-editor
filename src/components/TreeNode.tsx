@@ -26,6 +26,7 @@ const ActionButton: FC<{ onClick?: () => void; children: ReactNode; disabled?: b
         onClick={onClick}
         disabled={disabled}
         title={title}
+        aria-label={title}
         className={`p-1 rounded-md transition-colors ${
             disabled
                 ? 'text-gray-300 cursor-not-allowed'
@@ -185,6 +186,8 @@ export const TreeNode: FC<TreeNodeProps> = ({
       <div style={{ paddingLeft: `${level * 1.5}rem` }} className={`my-1 transition-all duration-200 ${isDragging ? 'opacity-50 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}>
         <div
         ref={nodeRef}
+        role="treeitem"
+        aria-expanded={hasChildren ? isExpanded : undefined}
         className={`group relative flex items-center justify-between rounded-lg p-2 transition-all duration-150 cursor-grab active:cursor-grabbing hover:shadow-md ${
           isHighlighted
             ? 'bg-green-100 border-2 border-green-500 shadow-lg'
@@ -199,7 +202,11 @@ export const TreeNode: FC<TreeNodeProps> = ({
       >
         <div className="flex items-center flex-grow truncate">
           {hasChildren ? (
-            <button onClick={() => onToggleExpand(node.id, !isExpanded)} className="p-1 mr-1 text-gray-500">
+            <button
+              onClick={() => onToggleExpand(node.id, !isExpanded)}
+              className="p-1 mr-1 text-gray-500"
+              aria-label={isExpanded ? "折りたたむ" : "展開する"}
+            >
                 {isExpanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
             </button>
           ) : (
@@ -208,10 +215,10 @@ export const TreeNode: FC<TreeNodeProps> = ({
           <span className="text-gray-800 select-none truncate">{node.name}</span>
         </div>
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <ActionButton onClick={() => setIsAdding(true)} title="Add Child">
+            <ActionButton onClick={() => setIsAdding(true)} title="子ノードを追加">
                 <AddIcon />
             </ActionButton>
-            <ActionButton onClick={() => onDeleteNode(node.id)} title="Delete Node">
+            <ActionButton onClick={() => onDeleteNode(node.id)} title="削除">
                 <DeleteIcon />
             </ActionButton>
         </div>

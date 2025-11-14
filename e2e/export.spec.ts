@@ -12,7 +12,7 @@ test.describe('エクスポート機能', () => {
     await page.getByRole('button', { name: 'ツリーを生成' }).click();
 
     // ノードが表示されるまで待つ
-    await expect(page.getByText('日本文学科')).toBeVisible();
+    await expect(page.getByRole('tree').getByText('日本文学科')).toBeVisible();
   });
 
   test('エクスポートモーダルを開ける', async ({ page }) => {
