@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 
 interface ExportModalProps {
     isOpen: boolean;
@@ -8,7 +8,7 @@ interface ExportModalProps {
     onClose: () => void;
 }
 
-export const ExportModal: React.FC<ExportModalProps> = ({
+export const ExportModal: FC<ExportModalProps> = ({
     isOpen,
     exportedText,
     copyButtonText,

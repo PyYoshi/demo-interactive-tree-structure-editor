@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { FC, FormEvent } from 'react';
 
 interface EmptyTreeStateProps {
     onAddRootNode: (name: string) => void;
 }
 
-export const EmptyTreeState: React.FC<EmptyTreeStateProps> = ({ onAddRootNode }) => {
+export const EmptyTreeState: FC<EmptyTreeStateProps> = ({ onAddRootNode }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [newRootNodeName, setNewRootNodeName] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (newRootNodeName.trim()) {
             onAddRootNode(newRootNodeName.trim());

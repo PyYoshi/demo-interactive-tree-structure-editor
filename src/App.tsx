@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import { Tree } from './components/Tree';
 import { ImportExportSection } from './components/ImportExportSection';
 import { ExportModal } from './components/ExportModal';
@@ -12,7 +12,7 @@ import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useExpandedNodes } from './hooks/useExpandedNodes';
 import { useExportModal } from './hooks/useExportModal';
 
-const App: React.FC = () => {
+const App: FC = () => {
     // 状態管理
     const { state, dispatch } = useTreeState(initialRawData.trim());
     const { treeData, inputText, highlightedNodeId } = state;

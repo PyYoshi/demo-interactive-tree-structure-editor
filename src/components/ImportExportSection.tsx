@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 
 interface ImportExportSectionProps {
     inputText: string;
@@ -7,7 +7,7 @@ interface ImportExportSectionProps {
     onExport: () => void;
 }
 
-export const ImportExportSection: React.FC<ImportExportSectionProps> = ({
+export const ImportExportSection: FC<ImportExportSectionProps> = ({
     inputText,
     onInputChange,
     onImport,

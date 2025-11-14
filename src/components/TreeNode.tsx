@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
+import type { FC, ReactNode, FormEvent, DragEvent } from 'react';
 import type { TreeNodeData } from '../types';
 import { AddIcon, DeleteIcon, ChevronDownIcon, ChevronRightIcon } from './icons';
 
@@ -20,7 +21,7 @@ interface TreeNodeProps {
   onPreviewChange: (target: { targetId: string, position: 'before' | 'after' | 'inside' } | null) => void;
 }
 
-const ActionButton: React.FC<{ onClick?: () => void; children: React.ReactNode; disabled?: boolean; title: string }> = ({ onClick, children, disabled = false, title }) => (
+const ActionButton: FC<{ onClick?: () => void; children: ReactNode; disabled?: boolean; title: string }> = ({ onClick, children, disabled = false, title }) => (
     <button
         onClick={onClick}
         disabled={disabled}
@@ -35,7 +36,7 @@ const ActionButton: React.FC<{ onClick?: () => void; children: React.ReactNode; 
     </button>
 );
 
-export const TreeNode: React.FC<TreeNodeProps> = ({
+export const TreeNode: FC<TreeNodeProps> = ({
   node,
   level,
   onAddNode,
@@ -87,7 +88,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     }
   };
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (newNodeName.trim()) {
       onAddNode(node.id, newNodeName.trim());
@@ -97,7 +98,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     }
   };
   
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
     e.stopPropagation(); // イベント伝搬を防いで親ノードのドラッグを防止
     e.dataTransfer.setData('application/json', JSON.stringify({ sourceId: node.id }));
     e.dataTransfer.effectAllowed = 'move';
@@ -113,7 +114,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     setDropPosition(null);
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -141,7 +142,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     e.dataTransfer.dropEffect = 'move';
   };
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.stopPropagation(); // イベント伝搬を防いで親ノードの状態更新を防止
     // より確実な離脱判定: relatedTargetがnullまたはこのノードの外の場合のみクリア
     const relatedTarget = e.relatedTarget as HTMLElement | null;
@@ -153,7 +154,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 

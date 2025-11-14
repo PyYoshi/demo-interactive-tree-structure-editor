@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import type { FeedbackMessage } from '../hooks/useFeedback';
 
 interface FeedbackToastProps {
@@ -6,7 +6,7 @@ interface FeedbackToastProps {
     onRemove: (id: string) => void;
 }
 
-export const FeedbackToast: React.FC<FeedbackToastProps> = ({ messages, onRemove }) => {
+export const FeedbackToast: FC<FeedbackToastProps> = ({ messages, onRemove }) => {
     if (messages.length === 0) return null;
 
     return (

@@ -1,4 +1,4 @@
-import React from 'react';
+import type { FC } from 'react';
 import type { TreeNodeData } from '../types';
 import { TreeNode } from './TreeNode';
 
@@ -17,7 +17,7 @@ interface TreeProps {
   onPreviewChange: (target: { targetId: string, position: 'before' | 'after' | 'inside' } | null) => void;
 }
 
-export const Tree: React.FC<TreeProps> = ({
+export const Tree: FC<TreeProps> = ({
   data,
   onAddNode,
   onDeleteNode,
