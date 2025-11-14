@@ -114,76 +114,36 @@ http://localhost:3000 でアプリケーションが起動します。
 
 ## 🧪 テスト
 
-### テストの実行
+このプロジェクトは3種類のテストで品質を担保しています。
+
+### ユニットテスト（Jest + React Testing Library）
 
 ```bash
-# テストを実行（watchモード）
-npm test
-
-# CI用テスト（1回だけ実行）
-npm run test:ci
-
-# UIモードでテストを実行
-npm run test:ui
-
-# カバレッジレポートを生成
-npm run test:coverage
+npm test                 # watchモード
+npm run test:ci          # CI用
+npm run test:coverage    # カバレッジレポート
 ```
 
-### テストスイート
-
-#### ユニットテスト
-
-- **ユーティリティ関数**: treeParser, treeOperations
-- **カスタムフック**: useTreeState, useExpandedNodes, useFeedback, useExportModal, useDragAndDrop, useTreeActions
-- **合計**: 169テスト（同一階層重複チェック、移動時重複チェック機能含む）
-
-すべてのユニットテストは[Vitest](https://vitest.dev/)と[React Testing Library](https://testing-library.com/react)で実装されています。
-
-#### E2Eテスト
-
-実際のユーザー操作をシミュレートするE2Eテストを[Playwright](https://playwright.dev/)で実装しています。
+### E2Eテスト（Playwright）
 
 ```bash
-# E2Eテストを実行
-npm run test:e2e
-
-# CI用E2Eテスト（listレポーター使用）
-npm run test:e2e:ci
-
-# UIモードで実行
-npm run test:e2e:ui
-
-# ブラウザを表示して実行
-npm run test:e2e:headed
-
-# デバッグモードで実行
-npm run test:e2e:debug
+npm run test:e2e         # 実行
+npm run test:e2e:ui      # UIモード
+npm run test:e2e:debug   # デバッグモード
 ```
 
-**テストシナリオ（24テスト）:**
-- **基本的な機能**（10テスト）
-  - ページ表示、データインポート
-  - ルートノード・子ノードの追加
-  - ノードの削除
-  - バリデーション（空のノード名、ルートノード制限）
-  - **同一階層重複チェック**
-    - 同じ名前のノードを同一階層に追加できない
-    - 異なる階層では同じ名前のノードを追加可能
-    - 空白付きの名前でも重複チェックが機能
-    - インポート後の追加時にも重複チェックが機能
-- **ドラッグ&ドロップ機能**（11テスト）
-  - ノード移動（前/後/子として配置）
-  - ドラッグ中のプレビュー表示
-  - ノードの展開・折りたたみ
-  - **移動時の重複名チェック**（4テスト）
-    - inside位置への移動時の重複チェック
-    - before位置への移動時の重複チェック
-    - after位置への移動時の重複チェック
-    - 同一階層内での位置変更は許可
-- **エクスポート機能**（3テスト）
-  - モーダル表示・クローズ
-  - クリップボードへのコピー
+### パフォーマンステスト（Reassure）
+
+```bash
+npm run test:performance         # 実行
+npm run test:performance:baseline # ベースライン作成
+```
+
+### すべてのテスト
+
+```bash
+npm run test:all  # ユニット + E2E（パフォーマンステスト除く）
+```
 
 ## 📦 デプロイ
 
@@ -268,9 +228,10 @@ Console タブで「Verbose」を無効化するだけです。
 - **TypeScript** - 型安全性
 - **Vite** - 高速ビルドツール
 - **Tailwind CSS v4** - スタイリング
-- **Vitest** - ユニットテストフレームワーク
+- **Jest** - ユニットテストフレームワーク
 - **React Testing Library** - Reactコンポーネント/フックのテスト
 - **Playwright** - E2Eテストフレームワーク
+- **Reassure** - パフォーマンステストフレームワーク
 - **HTML5 Drag and Drop API** - ドラッグ&ドロップ
 
 ## 📦 主要なフック

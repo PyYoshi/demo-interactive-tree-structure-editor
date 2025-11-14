@@ -2,7 +2,7 @@
 
 ## 概要
 
-**技術スタック**: React 19 + TypeScript + Vite + Tailwind CSS v4 + Vitest + Playwright
+**技術スタック**: React 19 + TypeScript + Vite + Tailwind CSS v4 + Jest + Playwright + Reassure
 
 **コア機能**:
 - ツリー構造データの編集（追加・削除・移動）
@@ -15,12 +15,15 @@
 ## 開発コマンド
 
 ```bash
-npm run dev              # 開発サーバー (localhost:3000)
-npm run build            # プロダクションビルド
-npm test                 # ユニットテスト (watchモード)
-npm run test:ci          # ユニットテスト (1回のみ)
-npm run test:e2e         # E2Eテスト
-npm run test:e2e:ui      # E2EテストUIモード
+npm run dev                      # 開発サーバー (localhost:3000)
+npm run build                    # プロダクションビルド
+npm test                         # ユニットテスト (watchモード)
+npm run test:ci                  # ユニットテスト (1回のみ)
+npm run test:all                 # すべてのテスト (ユニット + E2E)
+npm run test:e2e                 # E2Eテスト
+npm run test:e2e:ui              # E2EテストUIモード
+npm run test:performance         # パフォーマンステスト
+npm run test:performance:baseline # パフォーマンステストのベースライン作成
 ```
 
 ## アーキテクチャ
