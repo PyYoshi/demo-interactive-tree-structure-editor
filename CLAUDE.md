@@ -69,6 +69,36 @@ src/
 └── constants.ts        # 定数
 ```
 
+## ツール使用ガイド
+
+### コード確認（必須）
+
+⚠️ **Serena MCPを最優先で使用**
+
+**優先順位**:
+1. **Serena MCP** - シンボル検索・実装確認（コンテキスト効率的）
+2. Read - 設定ファイル・ドキュメントのみ
+3. Grep - 最終手段
+
+**Serena MCP の主要ツール**:
+- `get_symbols_overview` - ファイルのシンボル一覧取得（最初に使用）
+- `find_symbol` - シンボル名で検索、ボディ取得も可能
+- `find_referencing_symbols` - シンボルの参照箇所を検索
+- `search_for_pattern` - パターン検索（正規表現）
+
+**使用例**:
+```
+1. get_symbols_overview でファイル構造を把握
+   ↓
+2. find_symbol で特定のシンボル（関数・クラス等）を確認
+   ↓
+3. find_referencing_symbols で使用箇所を確認
+   ↓
+4. 実装開始
+```
+
+**WHY**: Serena MCPはシンボルレベルでコードを理解でき、コンテキスト消費が少なく効率的。Read toolでファイル全体を読むとコンテキストを大量消費する
+
 ## 実装ルール
 
 ### 1. 事前確認（必須）
@@ -272,6 +302,7 @@ if (hasDuplicateNameInSiblings(destinationSiblings, sourceNode.name, sourceId)) 
 
 | 間違い | 正しい方法 | WHY |
 |--------|-----------|-----|
+| Readでファイル全体を読む | Serena MCPでシンボル検索 | コンテキスト消費を最小化 |
 | Reducerでフィードバック表示 | useTreeActionsで表示 | Reducerは純粋関数、副作用は外で |
 | 1箇所だけでバリデーション | 多層バリデーション | 防御的プログラミング |
 | 移動時に重複チェックなし | 全ての位置で重複チェック | inside/before/after全てで必要 |
