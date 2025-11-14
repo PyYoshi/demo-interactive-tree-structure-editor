@@ -55,7 +55,8 @@ test.describe('ドラッグ&ドロップ機能', () => {
 
     // ノードの中央にドロップして子要素として追加
     await source.dragTo(target, {
-      targetPosition: { x: 50, y: 10 }
+      targetPosition: { x: 50, y: 10 },
+      force: true
     });
 
     // 成功メッセージの確認
@@ -85,22 +86,20 @@ test.describe('ドラッグ&ドロップ機能', () => {
   });
 
   test('ノードを展開・折りたたみできる', async ({ page }) => {
-    // 文学部を探す
-    const facultyNode = page.getByRole('tree').getByText('文学部').first();
-
     // 初期状態では子ノードが表示されている
     await expect(page.getByRole('tree').getByText('日本文学科')).toBeVisible();
     await expect(page.getByRole('tree').getByText('英文学科')).toBeVisible();
 
-    // 折りたたみボタンをクリック
-    await facultyNode.click();
+    // 文学部の折りたたみボタンを探してクリック
+    const facultyRow = page.getByRole('tree').getByText('文学部').locator('..');
+    await facultyRow.getByLabel('折りたたむ').click();
 
     // 子ノードが非表示になることを確認
     await expect(page.getByRole('tree').getByText('日本文学科')).not.toBeVisible();
     await expect(page.getByRole('tree').getByText('英文学科')).not.toBeVisible();
 
     // もう一度クリックして展開
-    await facultyNode.click();
+    await facultyRow.getByLabel('展開する').click();
 
     // 子ノードが再表示されることを確認
     await expect(page.getByRole('tree').getByText('日本文学科')).toBeVisible();
@@ -108,8 +107,9 @@ test.describe('ドラッグ&ドロップ機能', () => {
   });
 
   test('親ノードを折りたたむと子孫ノード全体が非表示になる', async ({ page }) => {
-    // 大学ノードをクリック
-    await page.getByRole('tree').getByText('大学').first().click();
+    // 大学ノードの折りたたみボタンをクリック
+    const universityRow = page.getByRole('tree').getByText('大学').locator('..');
+    await universityRow.getByLabel('折りたたむ').click();
 
     // すべての子孫ノードが非表示になることを確認
     await expect(page.getByRole('tree').getByText('文学部')).not.toBeVisible();

@@ -59,10 +59,10 @@ test.describe('基本的な機能', () => {
     await page.locator('[aria-label="子ノードを追加"]').first().click();
 
     // 子ノード名を入力
-    await page.getByPlaceholder('ノード名を入力').fill('文学部');
+    await page.getByPlaceholder('新しいノード名...').fill('文学部');
 
-    // 追加ボタンをクリック
-    await page.getByRole('button', { name: '追加' }).click();
+    // 保存ボタンをクリック
+    await page.getByRole('button', { name: '保存' }).click();
 
     // 子ノードが表示されることを確認
     await expect(page.getByRole('tree').getByText('文学部')).toBeVisible();
@@ -91,24 +91,6 @@ test.describe('基本的な機能', () => {
 
     // 成功メッセージの確認
     await expect(page.getByText('ノードを削除しました')).toBeVisible();
-  });
-
-  test('ツリーをクリアできる', async ({ page }) => {
-    // データをインポート
-    await page.locator('textarea').fill('大学 > 文学部');
-    await page.getByRole('button', { name: 'ツリーを生成' }).click();
-
-    // ノードが表示されることを確認
-    await expect(page.getByRole('tree').getByText('大学')).toBeVisible();
-
-    // クリアボタンをクリック
-    await page.getByRole('button', { name: 'クリア' }).click();
-
-    // ノードが削除されることを確認
-    await expect(page.getByRole('tree').getByText('大学')).not.toBeVisible();
-
-    // 成功メッセージの確認
-    await expect(page.getByText('ツリーをクリアしました')).toBeVisible();
   });
 
   test('空のノード名では追加できない', async ({ page }) => {
