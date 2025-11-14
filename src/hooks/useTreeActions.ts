@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import type { Dispatch } from 'react';
 import type { TreeAction, ActionResult } from './useTreeState';
+import { hasDuplicateNameInSiblings, findNode, getDestinationSiblings } from '../utils/treeOperations';
+import type { TreeNodeData } from '../types';
 
 export interface TreeActions {
     setInputText: (text: string) => void;
@@ -19,7 +21,7 @@ export interface TreeActions {
  */
 export const useTreeActions = (
     dispatch: Dispatch<TreeAction>,
-    treeData: any[],
+    treeData: TreeNodeData[],
     onFeedback?: (type: 'success' | 'error' | 'warning', message: string) => void
 ): TreeActions => {
     const setInputText = useCallback((text: string) => {
@@ -51,6 +53,13 @@ export const useTreeActions = (
             return { success: false, error: message };
         }
 
+        // 同一階層（ルートレベル）での重複チェック
+        if (hasDuplicateNameInSiblings(treeData, name)) {
+            const message = `同じ名前のノード「${name.trim()}」が既に存在します`;
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
         dispatch({ type: 'ADD_ROOT_NODE', payload: { name: name.trim() } });
         onFeedback?.('success', `ルートノード「${name.trim()}」を追加しました`);
         return { success: true, message: 'ルートノードを追加しました' };
@@ -63,10 +72,25 @@ export const useTreeActions = (
             return { success: false, error: message };
         }
 
+        // 親ノードを検索
+        const parentNode = findNode(treeData, parentId);
+        if (!parentNode) {
+            const message = '親ノードが見つかりません';
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
+        // 同一階層（親ノード配下）での重複チェック
+        if (hasDuplicateNameInSiblings(parentNode.children, name)) {
+            const message = `同じ名前のノード「${name.trim()}」が既に存在します`;
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
         dispatch({ type: 'ADD_NODE', payload: { parentId, name: name.trim() } });
         onFeedback?.('success', `ノード「${name.trim()}」を追加しました`);
         return { success: true, message: 'ノードを追加しました' };
-    }, [dispatch, onFeedback]);
+    }, [dispatch, treeData, onFeedback]);
 
     const deleteNode = useCallback((nodeId: string): ActionResult => {
         dispatch({ type: 'DELETE_NODE', payload: { nodeId } });
@@ -85,6 +109,29 @@ export const useTreeActions = (
             return { success: false, error: message };
         }
 
+        // 移動元ノードを検索
+        const sourceNode = findNode(treeData, sourceId);
+        if (!sourceNode) {
+            const message = '移動元ノードが見つかりません';
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
+        // 移動先の兄弟ノードを取得
+        const destinationSiblings = getDestinationSiblings(treeData, targetId, position);
+        if (!destinationSiblings) {
+            const message = '移動先が見つかりません';
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
+        // 移動先に同じ名前のノードが既に存在するかチェック（自分自身は除外）
+        if (hasDuplicateNameInSiblings(destinationSiblings, sourceNode.name, sourceId)) {
+            const message = `移動先に同じ名前のノード「${sourceNode.name.trim()}」が既に存在します`;
+            onFeedback?.('error', message);
+            return { success: false, error: message };
+        }
+
         dispatch({ type: 'MOVE_NODE', payload: { sourceId, targetId, position } });
 
         // 成功時にハイライト
@@ -95,7 +142,7 @@ export const useTreeActions = (
 
         onFeedback?.('success', 'ノードを移動しました');
         return { success: true, message: 'ノードを移動しました' };
-    }, [dispatch, onFeedback]);
+    }, [dispatch, treeData, onFeedback]);
 
     const highlightNode = useCallback((nodeId: string | null) => {
         dispatch({ type: 'HIGHLIGHT_NODE', payload: { nodeId } });

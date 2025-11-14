@@ -4,7 +4,10 @@ import {
   insertNodeRecursive,
   getAllDescendantIds,
   isDescendant,
-  findNode
+  findNode,
+  hasDuplicateNameInSiblings,
+  findParentNode,
+  getDestinationSiblings
 } from './treeOperations';
 import type { TreeNodeData } from '../types';
 
@@ -282,5 +285,193 @@ describe('findNode', () => {
 
     expect(node).not.toBeNull();
     expect(node?.name).toBe('ルート2');
+  });
+});
+
+describe('hasDuplicateNameInSiblings', () => {
+  it('空の配列では重複なし', () => {
+    const siblings: TreeNodeData[] = [];
+    const result = hasDuplicateNameInSiblings(siblings, '文学部');
+
+    expect(result).toBe(false);
+  });
+
+  it('同じ名前のノードが存在する場合はtrueを返す', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '文学部', children: [] },
+      { id: '2', name: '理学部', children: [] }
+    ];
+    const result = hasDuplicateNameInSiblings(siblings, '文学部');
+
+    expect(result).toBe(true);
+  });
+
+  it('同じ名前のノードが存在しない場合はfalseを返す', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '文学部', children: [] },
+      { id: '2', name: '理学部', children: [] }
+    ];
+    const result = hasDuplicateNameInSiblings(siblings, '工学部');
+
+    expect(result).toBe(false);
+  });
+
+  it('前後の空白を含む名前でも正しく重複を検出', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '文学部', children: [] },
+      { id: '2', name: '理学部', children: [] }
+    ];
+    const result = hasDuplicateNameInSiblings(siblings, '  文学部  ');
+
+    expect(result).toBe(true);
+  });
+
+  it('既存ノードに空白がある場合も正しく重複を検出', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '  文学部  ', children: [] },
+      { id: '2', name: '理学部', children: [] }
+    ];
+    const result = hasDuplicateNameInSiblings(siblings, '文学部');
+
+    expect(result).toBe(true);
+  });
+
+  it('大文字小文字は区別される', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: 'abc', children: [] }
+    ];
+    const result = hasDuplicateNameInSiblings(siblings, 'ABC');
+
+    expect(result).toBe(false);
+  });
+
+  it('複数の同名ノードが存在してもtrueを返す', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '文学部', children: [] },
+      { id: '2', name: '文学部', children: [] },
+      { id: '3', name: '理学部', children: [] }
+    ];
+    const result = hasDuplicateNameInSiblings(siblings, '文学部');
+
+    expect(result).toBe(true);
+  });
+
+  it('excludeIdを指定すると、そのノードは除外される', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '文学部', children: [] },
+      { id: '2', name: '理学部', children: [] }
+    ];
+    // ID='1'のノードを除外して「文学部」をチェック → 重複なし
+    const result = hasDuplicateNameInSiblings(siblings, '文学部', '1');
+
+    expect(result).toBe(false);
+  });
+
+  it('excludeIdを指定しても、他に同名ノードがあればtrueを返す', () => {
+    const siblings: TreeNodeData[] = [
+      { id: '1', name: '文学部', children: [] },
+      { id: '2', name: '文学部', children: [] },
+      { id: '3', name: '理学部', children: [] }
+    ];
+    // ID='1'を除外しても、ID='2'に「文学部」が存在
+    const result = hasDuplicateNameInSiblings(siblings, '文学部', '1');
+
+    expect(result).toBe(true);
+  });
+});
+
+describe('findParentNode', () => {
+  it('直接の親を見つけられる', () => {
+    const tree = createTestTree();
+    const parentNode = findParentNode(tree, '2'); // '2'は文学部
+
+    expect(parentNode).not.toBeNull();
+    expect(parentNode?.id).toBe('1'); // 大学
+    expect(parentNode?.name).toBe('大学');
+  });
+
+  it('深い階層の親も見つけられる', () => {
+    const tree = createTestTree();
+    const parentNode = findParentNode(tree, '3'); // '3'は日本文学科
+
+    expect(parentNode).not.toBeNull();
+    expect(parentNode?.id).toBe('2'); // 文学部
+    expect(parentNode?.name).toBe('文学部');
+  });
+
+  it('ルートノードの親はnullを返す', () => {
+    const tree = createTestTree();
+    const parentNode = findParentNode(tree, '1'); // '1'はルート
+
+    expect(parentNode).toBeNull();
+  });
+
+  it('存在しないノードの親はnullを返す', () => {
+    const tree = createTestTree();
+    const parentNode = findParentNode(tree, '999');
+
+    expect(parentNode).toBeNull();
+  });
+
+  it('空の配列からの検索はnullを返す', () => {
+    const parentNode = findParentNode([], '1');
+
+    expect(parentNode).toBeNull();
+  });
+});
+
+describe('getDestinationSiblings', () => {
+  it('inside位置では、targetノードの子配列を返す', () => {
+    const tree = createTestTree();
+    const siblings = getDestinationSiblings(tree, '1', 'inside'); // 大学の子
+
+    expect(siblings).not.toBeNull();
+    expect(siblings).toHaveLength(2);
+    expect(siblings?.[0].id).toBe('2'); // 文学部
+    expect(siblings?.[1].id).toBe('5'); // 理学部
+  });
+
+  it('before位置では、targetノードの親の子配列を返す', () => {
+    const tree = createTestTree();
+    const siblings = getDestinationSiblings(tree, '2', 'before'); // 文学部の兄弟
+
+    expect(siblings).not.toBeNull();
+    expect(siblings).toHaveLength(2);
+    expect(siblings?.[0].id).toBe('2'); // 文学部
+    expect(siblings?.[1].id).toBe('5'); // 理学部
+  });
+
+  it('after位置では、targetノードの親の子配列を返す', () => {
+    const tree = createTestTree();
+    const siblings = getDestinationSiblings(tree, '5', 'after'); // 理学部の兄弟
+
+    expect(siblings).not.toBeNull();
+    expect(siblings).toHaveLength(2);
+    expect(siblings?.[0].id).toBe('2'); // 文学部
+    expect(siblings?.[1].id).toBe('5'); // 理学部
+  });
+
+  it('ルートレベルのbefore/after位置では、ルート配列を返す', () => {
+    const tree = createTestTree();
+    const siblings = getDestinationSiblings(tree, '1', 'before');
+
+    expect(siblings).not.toBeNull();
+    expect(siblings).toHaveLength(1);
+    expect(siblings?.[0].id).toBe('1'); // 大学
+  });
+
+  it('存在しないノードではnullを返す', () => {
+    const tree = createTestTree();
+    const siblings = getDestinationSiblings(tree, '999', 'inside');
+
+    expect(siblings).toBeNull();
+  });
+
+  it('子を持たないノードのinside位置では空配列を返す', () => {
+    const tree = createTestTree();
+    const siblings = getDestinationSiblings(tree, '3', 'inside'); // 日本文学科（葉ノード）
+
+    expect(siblings).not.toBeNull();
+    expect(siblings).toHaveLength(0);
   });
 });

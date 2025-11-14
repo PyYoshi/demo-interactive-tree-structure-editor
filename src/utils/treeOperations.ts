@@ -128,3 +128,70 @@ export const findNode = (nodes: TreeNodeData[], nodeId: string): TreeNodeData | 
     }
     return null;
 };
+
+/**
+ * 同一階層に同じ名前のノードが存在するかチェック
+ * @param nodes - ツリーノードの配列（兄弟ノード）
+ * @param name - チェックする名前
+ * @param excludeId - チェックから除外するノードID（移動時に自分自身を除外するため）
+ * @returns 同じ名前のノードが存在する場合true
+ */
+export const hasDuplicateNameInSiblings = (
+    nodes: TreeNodeData[],
+    name: string,
+    excludeId?: string
+): boolean => {
+    const trimmedName = name.trim();
+    return nodes.some(node =>
+        node.id !== excludeId && node.name.trim() === trimmedName
+    );
+};
+
+/**
+ * ノードの親を検索
+ * @param nodes - ツリーノードの配列
+ * @param childId - 子ノードのID
+ * @returns 親ノード（見つからない場合null）
+ */
+export const findParentNode = (nodes: TreeNodeData[], childId: string): TreeNodeData | null => {
+    for (const node of nodes) {
+        // 直接の子かチェック
+        if (node.children.some(child => child.id === childId)) {
+            return node;
+        }
+        // 子孫の中を再帰的に検索
+        if (node.children.length > 0) {
+            const found = findParentNode(node.children, childId);
+            if (found) return found;
+        }
+    }
+    return null;
+};
+
+/**
+ * ノード移動時の移動先兄弟ノードを取得
+ * @param nodes - ツリーノードの配列
+ * @param targetId - 移動先ノードのID
+ * @param position - 移動位置
+ * @returns 移動先の兄弟ノード配列（取得できない場合null）
+ */
+export const getDestinationSiblings = (
+    nodes: TreeNodeData[],
+    targetId: string,
+    position: 'before' | 'after' | 'inside'
+): TreeNodeData[] | null => {
+    if (position === 'inside') {
+        // insideの場合は、targetノードの子配列が兄弟ノード
+        const targetNode = findNode(nodes, targetId);
+        return targetNode ? targetNode.children : null;
+    } else {
+        // before/afterの場合は、targetノードの親の子配列が兄弟ノード
+        // ルートレベルかチェック
+        if (nodes.some(node => node.id === targetId)) {
+            return nodes; // ルートレベル
+        }
+        // 親ノードを検索
+        const parentNode = findParentNode(nodes, targetId);
+        return parentNode ? parentNode.children : null;
+    }
+};

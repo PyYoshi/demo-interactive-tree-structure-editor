@@ -1,7 +1,7 @@
 import { useReducer, Reducer } from 'react';
 import type { TreeNodeData } from '../types';
 import { parseData } from '../utils/treeParser';
-import { removeNodeRecursive, insertNodeRecursive, isDescendant } from '../utils/treeOperations';
+import { removeNodeRecursive, insertNodeRecursive, isDescendant, hasDuplicateNameInSiblings, findNode, getDestinationSiblings } from '../utils/treeOperations';
 
 // 状態の型定義
 export interface TreeState {
@@ -71,6 +71,11 @@ const treeReducer: Reducer<TreeState, TreeAction> = (state, action) => {
                 logAction(action, 'error', 'ルートノードは既に存在します');
                 return state;
             }
+            // 同一階層での重複チェック（防御的）
+            if (hasDuplicateNameInSiblings(state.treeData, action.payload.name)) {
+                logAction(action, 'error', `同じ名前のノードが既に存在します: ${action.payload.name}`);
+                return state;
+            }
             const newNode: TreeNodeData = {
                 id: crypto.randomUUID(),
                 name: action.payload.name,
@@ -82,6 +87,20 @@ const treeReducer: Reducer<TreeState, TreeAction> = (state, action) => {
 
         case 'ADD_NODE': {
             const { parentId, name } = action.payload;
+
+            // 親ノードを検索（防御的）
+            const parentNode = findNode(state.treeData, parentId);
+            if (!parentNode) {
+                logAction(action, 'error', `親ノードが見つかりません: ${parentId}`);
+                return state;
+            }
+
+            // 同一階層での重複チェック（防御的）
+            if (hasDuplicateNameInSiblings(parentNode.children, name)) {
+                logAction(action, 'error', `同じ名前のノードが既に存在します: ${name}`);
+                return state;
+            }
+
             const newNode: TreeNodeData = {
                 id: crypto.randomUUID(),
                 name,
@@ -147,6 +166,13 @@ const treeReducer: Reducer<TreeState, TreeAction> = (state, action) => {
             // 循環参照チェック
             if (isDescendant(sourceNode, targetId)) {
                 logAction(action, 'error', '親ノードをその子孫に移動できません');
+                return state;
+            }
+
+            // 移動先の兄弟ノードを取得して重複チェック（防御的）
+            const destinationSiblings = getDestinationSiblings(state.treeData, targetId, position);
+            if (destinationSiblings && hasDuplicateNameInSiblings(destinationSiblings, sourceNode.name, sourceId)) {
+                logAction(action, 'error', `移動先に同じ名前のノードが既に存在します: ${sourceNode.name}`);
                 return state;
             }
 

@@ -118,3 +118,82 @@ test.describe('ドラッグ&ドロップ機能', () => {
     await expect(page.getByRole('tree').getByText('数学科')).not.toBeVisible();
   });
 });
+
+test.describe('ドラッグ&ドロップ - 重複名チェック', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+
+    // テスト用のツリー構造をインポート（異なる階層に同名ノードを作成）
+    const importData = `大学 > 文学部 > 国文学科
+大学 > 文学部 > 国際学科
+大学 > 理学部 > 国文学科
+大学 > 理学部 > 物理学科`;
+    await page.locator('textarea').fill(importData);
+    await page.getByRole('button', { name: 'ツリーを生成' }).click();
+
+    // ノードが表示されるまで待つ
+    await expect(page.getByRole('tree').getByText('国文学科').first()).toBeVisible();
+  });
+
+  test('重複する名前のノードを同一階層内に移動できない（inside）', async ({ page }) => {
+    // 理学部の「国文学科」を文学部の中に移動しようとする（文学部にはすでに「国文学科」がある）
+    const nodes = page.getByRole('tree').getByText('国文学科');
+    const source = nodes.nth(1); // 理学部の国文学科
+    const target = page.getByRole('tree').getByText('文学部').first();
+
+    // ドラッグ&ドロップを実行（子として追加）
+    await source.dragTo(target, {
+      targetPosition: { x: 50, y: 10 },
+      force: true
+    });
+
+    // エラーメッセージの確認
+    await expect(page.getByText('移動先に同じ名前のノード「国文学科」が既に存在します')).toBeVisible();
+  });
+
+  test('重複する名前のノードを同一階層内に移動できない（before）', async ({ page }) => {
+    // 理学部の「国文学科」を文学部の「国際学科」の前に移動しようとする
+    const nodes = page.getByRole('tree').getByText('国文学科');
+    const source = nodes.nth(1); // 理学部の国文学科
+    const target = page.getByRole('tree').getByText('国際学科').first();
+
+    // ドラッグ&ドロップを実行（前に挿入）
+    await source.dragTo(target, {
+      targetPosition: { x: 0, y: 0 }
+    });
+
+    // エラーメッセージの確認
+    await expect(page.getByText('移動先に同じ名前のノード「国文学科」が既に存在します')).toBeVisible();
+  });
+
+  test('重複する名前のノードを同一階層内に移動できない（after）', async ({ page }) => {
+    // 理学部の「国文学科」を文学部の「国際学科」の後に移動しようとする
+    const nodes = page.getByRole('tree').getByText('国文学科');
+    const source = nodes.nth(1); // 理学部の国文学科
+    const target = page.getByRole('tree').getByText('国際学科').first();
+
+    // ドラッグ&ドロップを実行（後に挿入）
+    await source.dragTo(target, {
+      targetPosition: { x: 0, y: 20 }
+    });
+
+    // エラーメッセージの確認
+    await expect(page.getByText('移動先に同じ名前のノード「国文学科」が既に存在します')).toBeVisible();
+  });
+
+  test('同一階層内で位置を変更する場合は同名でも成功する', async ({ page }) => {
+    // 文学部の「国文学科」を同じ文学部内で「国際学科」の後に移動
+    // 同じ階層内での位置変更なので、自分自身を除外して成功する
+    const nodes = page.getByRole('tree').getByText('国文学科');
+    const source = nodes.first(); // 文学部の国文学科
+    const target = page.getByRole('tree').getByText('国際学科').first();
+
+    // ドラッグ&ドロップを実行（国際学科の後に挿入）
+    await source.dragTo(target, {
+      targetPosition: { x: 0, y: 20 }
+    });
+
+    // 成功メッセージの確認
+    await expect(page.getByText('ノードを移動しました')).toBeVisible();
+  });
+});

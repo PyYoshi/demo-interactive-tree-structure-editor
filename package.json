@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
+    "test:all": "vitest --run && playwright test --reporter=list",
     "test:ci": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
