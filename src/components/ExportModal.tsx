@@ -1,9 +1,12 @@
 import type { FC } from 'react';
+import type { ExportFormat } from '../types';
 
 interface ExportModalProps {
     isOpen: boolean;
     exportedText: string;
     copyButtonText: string;
+    exportFormat: ExportFormat;
+    onFormatChange: (format: ExportFormat) => void;
     onCopy: () => void;
     onClose: () => void;
 }
@@ -12,6 +15,8 @@ export const ExportModal: FC<ExportModalProps> = ({
     isOpen,
     exportedText,
     copyButtonText,
+    exportFormat,
+    onFormatChange,
     onCopy,
     onClose,
 }) => {
@@ -30,7 +35,45 @@ export const ExportModal: FC<ExportModalProps> = ({
                 onClick={e => e.stopPropagation()}
             >
                 <header className="p-4 border-b">
-                    <h2 id="export-modal-title" className="text-xl font-semibold">エクスポートされたデータ</h2>
+                    <h2 id="export-modal-title" className="text-xl font-semibold mb-3">エクスポートされたデータ</h2>
+                    <div className="flex items-center space-x-4">
+                        <span className="text-sm font-medium text-gray-700">形式:</span>
+                        <div className="flex space-x-3">
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-format"
+                                    value="text"
+                                    checked={exportFormat === 'text'}
+                                    onChange={() => onFormatChange('text')}
+                                    className="mr-1.5"
+                                />
+                                <span className="text-sm">Text</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-format"
+                                    value="json"
+                                    checked={exportFormat === 'json'}
+                                    onChange={() => onFormatChange('json')}
+                                    className="mr-1.5"
+                                />
+                                <span className="text-sm">JSON</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-format"
+                                    value="yaml"
+                                    checked={exportFormat === 'yaml'}
+                                    onChange={() => onFormatChange('yaml')}
+                                    className="mr-1.5"
+                                />
+                                <span className="text-sm">YAML</span>
+                            </label>
+                        </div>
+                    </div>
                 </header>
                 <main className="p-4 flex-grow overflow-y-auto">
                     <textarea

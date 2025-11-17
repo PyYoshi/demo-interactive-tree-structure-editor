@@ -7,8 +7,17 @@
 ### 基本機能
 - **階層データのインポート/エクスポート**
   - `親 > 子 > 孫` 形式のテキストデータをツリー構造に変換
-  - ツリー構造をテキスト形式でエクスポート
+  - 3つのエクスポート形式に対応
+    - **Text**: シンプルなテキスト形式
+    - **JSON**: 構造化データ + 変更履歴
+    - **YAML**: 人間が読みやすい形式 + 変更履歴
   - クリップボードへのコピー
+
+- **変更履歴の記録**
+  - インポートからエクスポートまでの全ての操作を記録
+  - 記録される操作: インポート、追加、削除、移動
+  - 移動操作では移動元・移動先・ターゲットノードを記録
+  - JSON/YAML形式でエクスポート可能
 
 - **ノード操作**
   - ノードの追加・削除
@@ -239,6 +248,7 @@ Console タブで「Verbose」を無効化するだけです。
 ### useTreeState
 - useReducerベースの状態管理
 - すべての状態遷移を1箇所で管理
+- 変更履歴の自動記録
 - アクション: `ADD_NODE`, `DELETE_NODE`, `MOVE_NODE`, `IMPORT_DATA`など
 
 ### useTreeActions
@@ -255,6 +265,12 @@ Console タブで「Verbose」を無効化するだけです。
 - トースト通知の管理
 - 3秒後に自動削除
 - デバッグログ出力
+
+### useExportModal
+- エクスポートモーダルの状態管理
+- 形式選択（Text/JSON/YAML）
+- 形式変更時の自動テキスト再生成
+- クリップボードコピー機能
 
 ## 🎨 カスタマイズ
 
@@ -285,7 +301,96 @@ setTimeout(() => {
 ```
 
 ### エクスポート形式
-同じ形式でエクスポートされます。葉ノードのみがテキストに含まれます。
+
+#### Text形式
+インポートと同じ形式でエクスポートされます。葉ノードのみがテキストに含まれます。
+
+#### JSON形式
+ツリー構造と変更履歴を含むJSON形式：
+```json
+{
+  "tree": [
+    {
+      "id": "1",
+      "name": "大学",
+      "children": [
+        {
+          "id": "2",
+          "name": "文学部",
+          "children": [...]
+        }
+      ]
+    }
+  ],
+  "changeHistory": [
+    {
+      "timestamp": "2025-11-14T12:00:00.000Z",
+      "type": "import",
+      "details": "1個のルートノードをインポート"
+    },
+    {
+      "timestamp": "2025-11-14T12:01:00.000Z",
+      "type": "add",
+      "nodeName": "経済学部",
+      "parentName": "大学"
+    },
+    {
+      "timestamp": "2025-11-14T12:02:00.000Z",
+      "type": "move",
+      "nodeName": "日本文学科",
+      "fromPath": "大学 > 文学部 > 日本文学科",
+      "toPath": "大学 > 文学部 > 日本文学科",
+      "position": "before",
+      "targetNodeName": "外国語文学科"
+    }
+  ],
+  "exportedAt": "2025-11-14T12:05:00.000Z"
+}
+```
+
+#### YAML形式
+より人間が読みやすいYAML形式：
+```yaml
+tree:
+  - id: "1"
+    name: 大学
+    children:
+      - id: "2"
+        name: 文学部
+        children: [...]
+
+changeHistory:
+  - timestamp: "2025-11-14T12:00:00.000Z"
+    type: import
+    details: 1個のルートノードをインポート
+  - timestamp: "2025-11-14T12:01:00.000Z"
+    type: add
+    nodeName: 経済学部
+    parentName: 大学
+  - timestamp: "2025-11-14T12:02:00.000Z"
+    type: move
+    nodeName: 日本文学科
+    fromPath: "大学 > 文学部 > 日本文学科"
+    toPath: "大学 > 文学部 > 日本文学科"
+    position: before
+    targetNodeName: 外国語文学科
+
+exportedAt: "2025-11-14T12:05:00.000Z"
+```
+
+### 変更履歴の項目
+
+| フィールド | 説明 |
+|-----------|------|
+| `timestamp` | 操作日時（ISO 8601形式） |
+| `type` | 操作タイプ（`import`, `add`, `delete`, `move`） |
+| `nodeName` | 操作対象のノード名 |
+| `parentName` | 親ノード名（追加時） |
+| `fromPath` | 移動前のパス（削除・移動時） |
+| `toPath` | 移動後のパス（移動時） |
+| `position` | 移動位置（`before`, `after`, `inside`） |
+| `targetNodeName` | 移動先の基準ノード名（移動時） |
+| `details` | 詳細情報 |
 
 ## 🤝 コントリビューション
 

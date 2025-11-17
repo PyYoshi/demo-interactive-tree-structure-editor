@@ -15,7 +15,7 @@ import { useExportModal } from './hooks/useExportModal';
 const App: FC = () => {
     // 状態管理
     const { state, dispatch } = useTreeState(initialRawData.trim());
-    const { treeData, inputText, highlightedNodeId } = state;
+    const { treeData, inputText, highlightedNodeId, changeHistory } = state;
 
     // フィードバック
     const { messages, showFeedback, removeFeedback } = useFeedback();
@@ -30,7 +30,7 @@ const App: FC = () => {
     const { expandedNodes, toggleExpand } = useExpandedNodes(treeData);
 
     // エクスポートモーダル
-    const exportModal = useExportModal(treeData);
+    const exportModal = useExportModal(treeData, changeHistory);
 
     return (
         <div className="min-h-screen bg-gray-100 font-sans p-4 sm:p-6 lg:p-8">
@@ -73,6 +73,8 @@ const App: FC = () => {
                 isOpen={exportModal.isOpen}
                 exportedText={exportModal.exportedText}
                 copyButtonText={exportModal.copyButtonText}
+                exportFormat={exportModal.exportFormat}
+                onFormatChange={exportModal.setExportFormat}
                 onCopy={exportModal.copyToClipboard}
                 onClose={exportModal.closeModal}
             />
