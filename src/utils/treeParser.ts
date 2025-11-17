@@ -1,4 +1,4 @@
-import type { TreeNodeData } from '../types';
+import type { TreeNodeData, ChangeHistoryEntry, ExportData } from '../types';
 
 /**
  * テキスト形式のデータをツリー構造に変換
@@ -63,4 +63,80 @@ export const convertTreeToText = (data: TreeNodeData[]): string => {
     data.forEach(rootNode => traverse(rootNode, []));
 
     return lines.join('\n');
+};
+
+/**
+ * ツリーデータと変更履歴をJSON形式にエクスポート
+ * @param data ツリーデータ
+ * @param changeHistory 変更履歴
+ * @returns JSON文字列
+ */
+export const convertToJSON = (data: TreeNodeData[], changeHistory: ChangeHistoryEntry[]): string => {
+    const exportData: ExportData = {
+        tree: data,
+        changeHistory,
+        exportedAt: new Date().toISOString(),
+    };
+    return JSON.stringify(exportData, null, 2);
+};
+
+/**
+ * ツリーデータと変更履歴をYAML形式にエクスポート
+ * @param data ツリーデータ
+ * @param changeHistory 変更履歴
+ * @returns YAML文字列
+ */
+export const convertToYAML = (data: TreeNodeData[], changeHistory: ChangeHistoryEntry[]): string => {
+    const exportData: ExportData = {
+        tree: data,
+        changeHistory,
+        exportedAt: new Date().toISOString(),
+    };
+
+    // シンプルなYAML変換（深いネストには対応）
+    const yamlify = (obj: any, indent = 0): string => {
+        const spaces = '  '.repeat(indent);
+        let result = '';
+
+        if (Array.isArray(obj)) {
+            if (obj.length === 0) {
+                return '[]';
+            }
+            obj.forEach((item, index) => {
+                if (typeof item === 'object' && item !== null) {
+                    result += `\n${spaces}- ${yamlify(item, indent + 1).trim()}`;
+                } else {
+                    result += `\n${spaces}- ${item}`;
+                }
+            });
+            return result;
+        }
+
+        if (typeof obj === 'object' && obj !== null) {
+            Object.entries(obj).forEach(([key, value]) => {
+                if (value === undefined || value === null) {
+                    result += `\n${spaces}${key}: null`;
+                } else if (Array.isArray(value)) {
+                    if (value.length === 0) {
+                        result += `\n${spaces}${key}: []`;
+                    } else {
+                        result += `\n${spaces}${key}:${yamlify(value, indent + 1)}`;
+                    }
+                } else if (typeof value === 'object') {
+                    result += `\n${spaces}${key}:${yamlify(value, indent + 1)}`;
+                } else if (typeof value === 'string') {
+                    // 特殊文字を含む場合はクォートで囲む
+                    const needsQuotes = /[:\[\]{}>"'|&*#?]/.test(value) || value.includes('\n');
+                    result += `\n${spaces}${key}: ${needsQuotes ? `"${value.replace(/"/g, '\\"')}"` : value}`;
+                } else {
+                    result += `\n${spaces}${key}: ${value}`;
+                }
+            });
+            return result;
+        }
+
+        return String(obj);
+    };
+
+    return yamlify(exportData).trim();
 };

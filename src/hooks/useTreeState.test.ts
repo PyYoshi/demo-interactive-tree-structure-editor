@@ -397,6 +397,74 @@ describe('useTreeState', () => {
 
       expect(result.current.state.treeData).toEqual(initialState);
     });
+
+    it('移動操作の変更履歴にターゲットノード名が記録される', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '東都大学 > 文学部 > 日本文学科\n東都大学 > 文学部 > 外国語文学科'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+      const gaikokugobungakuId = result.current.state.treeData[0].children[0].children[1].id;
+
+      // 日本文学科を外国語文学科の前に移動
+      act(() => {
+        result.current.dispatch({
+          type: 'MOVE_NODE',
+          payload: {
+            sourceId: nihonbungakuId,
+            targetId: gaikokugobungakuId,
+            position: 'before'
+          }
+        });
+      });
+
+      const moveHistory = result.current.state.changeHistory.find(h => h.type === 'move');
+      expect(moveHistory).toBeDefined();
+      expect(moveHistory?.nodeName).toBe('日本文学科');
+      expect(moveHistory?.targetNodeName).toBe('外国語文学科');
+      expect(moveHistory?.position).toBe('before');
+      expect(moveHistory?.fromPath).toBe('東都大学 > 文学部 > 日本文学科');
+      expect(moveHistory?.toPath).toBe('東都大学 > 文学部 > 日本文学科');
+    });
+
+    it('inside移動の変更履歴にもターゲットノード名が記録される', () => {
+      const { result } = renderHook(() => useTreeState());
+
+      act(() => {
+        result.current.dispatch({
+          type: 'IMPORT_DATA',
+          payload: '東都大学 > 文学部 > 日本文学科\n東都大学 > 理学部'
+        });
+      });
+
+      const nihonbungakuId = result.current.state.treeData[0].children[0].children[0].id;
+      const rigakubuId = result.current.state.treeData[0].children[1].id;
+
+      // 日本文学科を理学部の中に移動
+      act(() => {
+        result.current.dispatch({
+          type: 'MOVE_NODE',
+          payload: {
+            sourceId: nihonbungakuId,
+            targetId: rigakubuId,
+            position: 'inside'
+          }
+        });
+      });
+
+      const moveHistory = result.current.state.changeHistory.find(h => h.type === 'move');
+      expect(moveHistory).toBeDefined();
+      expect(moveHistory?.nodeName).toBe('日本文学科');
+      expect(moveHistory?.targetNodeName).toBe('理学部');
+      expect(moveHistory?.position).toBe('inside');
+      expect(moveHistory?.fromPath).toBe('東都大学 > 文学部 > 日本文学科');
+      expect(moveHistory?.toPath).toBe('東都大学 > 理学部 > 日本文学科');
+    });
   });
 
   describe('HIGHLIGHT_NODE', () => {

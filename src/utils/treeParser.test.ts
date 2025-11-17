@@ -1,5 +1,5 @@
-import { parseData, convertTreeToText } from './treeParser';
-import type { TreeNodeData } from '../types';
+import { parseData, convertTreeToText, convertToJSON, convertToYAML } from './treeParser';
+import type { TreeNodeData, ChangeHistoryEntry } from '../types';
 
 describe('parseData', () => {
   it('空の文字列をパースすると空の配列を返す', () => {
@@ -231,5 +231,108 @@ describe('parseData と convertTreeToText の相互変換', () => {
     const parsed = parseData(original);
     const converted = convertTreeToText(parsed);
     expect(converted).toBe(original);
+  });
+});
+
+describe('convertToJSON', () => {
+  it('ツリーと変更履歴をJSON形式に変換できる', () => {
+    const data: TreeNodeData[] = [
+      { id: '1', name: '大学', children: [] }
+    ];
+    const changeHistory: ChangeHistoryEntry[] = [
+      {
+        timestamp: '2025-01-01T00:00:00.000Z',
+        type: 'import',
+        details: 'テストインポート',
+      }
+    ];
+
+    const result = convertToJSON(data, changeHistory);
+    const parsed = JSON.parse(result);
+
+    expect(parsed).toHaveProperty('tree');
+    expect(parsed).toHaveProperty('changeHistory');
+    expect(parsed).toHaveProperty('exportedAt');
+    expect(parsed.tree).toEqual(data);
+    expect(parsed.changeHistory).toEqual(changeHistory);
+  });
+
+  it('空のツリーと空の変更履歴をJSON形式に変換できる', () => {
+    const result = convertToJSON([], []);
+    const parsed = JSON.parse(result);
+
+    expect(parsed.tree).toEqual([]);
+    expect(parsed.changeHistory).toEqual([]);
+    expect(parsed).toHaveProperty('exportedAt');
+  });
+
+  it('JSONは整形されている（インデント付き）', () => {
+    const data: TreeNodeData[] = [
+      { id: '1', name: '大学', children: [] }
+    ];
+    const result = convertToJSON(data, []);
+
+    expect(result).toContain('\n');
+    expect(result).toContain('  ');
+  });
+});
+
+describe('convertToYAML', () => {
+  it('ツリーと変更履歴をYAML形式に変換できる', () => {
+    const data: TreeNodeData[] = [
+      { id: '1', name: '大学', children: [] }
+    ];
+    const changeHistory: ChangeHistoryEntry[] = [
+      {
+        timestamp: '2025-01-01T00:00:00.000Z',
+        type: 'add',
+        nodeName: 'テストノード',
+      }
+    ];
+
+    const result = convertToYAML(data, changeHistory);
+
+    expect(result).toContain('tree:');
+    expect(result).toContain('changeHistory:');
+    expect(result).toContain('exportedAt:');
+    expect(result).toContain('id: 1');
+    expect(result).toContain('name: 大学');
+    expect(result).toContain('type: add');
+    expect(result).toContain('nodeName: テストノード');
+  });
+
+  it('空のツリーと空の変更履歴をYAML形式に変換できる', () => {
+    const result = convertToYAML([], []);
+
+    expect(result).toContain('tree: []');
+    expect(result).toContain('changeHistory: []');
+    expect(result).toContain('exportedAt:');
+  });
+
+  it('複雑なツリー構造をYAML形式に変換できる', () => {
+    const data: TreeNodeData[] = [
+      {
+        id: '1',
+        name: '大学',
+        children: [
+          {
+            id: '2',
+            name: '文学部',
+            children: [
+              { id: '3', name: '日本文学科', children: [] }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const result = convertToYAML(data, []);
+
+    expect(result).toContain('id: 1');
+    expect(result).toContain('name: 大学');
+    expect(result).toContain('id: 2');
+    expect(result).toContain('name: 文学部');
+    expect(result).toContain('id: 3');
+    expect(result).toContain('name: 日本文学科');
   });
 });
