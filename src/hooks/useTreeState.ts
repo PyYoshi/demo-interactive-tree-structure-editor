@@ -292,6 +292,12 @@ const treeReducer: Reducer<TreeState, TreeAction> = (state, action) => {
                 return state;
             }
 
+            // 変更前のノード名を保存
+            const oldName = targetNode.name;
+
+            // ノードのパスを取得
+            const nodePath = getNodePath(state.treeData, nodeId);
+
             // ノード名を更新
             const renameNodeRecursive = (nodes: TreeNodeData[]): TreeNodeData[] => {
                 return nodes.map(node => {
@@ -306,7 +312,16 @@ const treeReducer: Reducer<TreeState, TreeAction> = (state, action) => {
             };
 
             logAction(action, 'success', `ノード名変更: ${targetNode.name} → ${newName}`);
-            return { ...state, treeData: renameNodeRecursive(state.treeData) };
+            return {
+                ...state,
+                treeData: renameNodeRecursive(state.treeData),
+                changeHistory: addChangeHistory(state.changeHistory, {
+                    type: 'rename',
+                    oldName,
+                    newName,
+                    details: nodePath ? `「${nodePath}」を「${newName}」に変更` : `「${oldName}」を「${newName}」に変更`,
+                }),
+            };
         }
 
         case 'HIGHLIGHT_NODE':

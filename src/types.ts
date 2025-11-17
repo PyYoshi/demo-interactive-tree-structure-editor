@@ -8,7 +8,7 @@ export interface TreeNodeData {
 /**
  * 変更履歴のアクションタイプ
  */
-export type ChangeActionType = 'import' | 'add' | 'delete' | 'move';
+export type ChangeActionType = 'import' | 'add' | 'delete' | 'move' | 'rename';
 
 /**
  * 変更履歴のエントリ
@@ -30,6 +30,10 @@ export interface ChangeHistoryEntry {
   position?: 'before' | 'after' | 'inside';
   /** ターゲットノード名（移動時、before/after の場合） */
   targetNodeName?: string;
+  /** 変更前の名前（名前変更時） */
+  oldName?: string;
+  /** 変更後の名前（名前変更時） */
+  newName?: string;
   /** 詳細情報 */
   details?: string;
 }
